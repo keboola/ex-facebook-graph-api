@@ -1,0 +1,9 @@
+version: "2"
+services:
+  app:
+    build: .
+    image: keboola/ex-fb-graph-api
+    volumes:
+      - ./:/code
+    ports:
+      - "1111:1111"
