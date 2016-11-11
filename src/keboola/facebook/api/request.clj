@@ -1,5 +1,5 @@
-(ns keboola.facebook.api.client
-  (:require [keboola.http.client :as http])
+(ns keboola.facebook.api.request
+  (:require [keboola.http.client :as client])
   )
 
 (def graph-api-url "https://graph.facebook.com/")
@@ -12,11 +12,11 @@
   (get-in response [:body :data])
   )
 
-(defn collect-result [response]
+(defn collect-result [response api-fn]
   (lazy-seq
    (if (get-next-page-url response)
      (concat (get-response-data response)
-             (collect-result (http/GET (get-next-page-url response)))))))
+             (collect-result (api-fn (get-next-page-url response)) api-fn)))))
 
 
 (defn make-url [path & {:keys [version]}]
@@ -24,8 +24,9 @@
 
 
 (defn get-request [access-token path & {:keys [query version]}]
-  (collect-result
-   (http/GET
-    (make-url path :version version)
-    :query-params (assoc query :access_token token)
-    )))
+  (let [query-params (assoc query :access_token access-token)
+        request-fn (fn [url] (client/GET url :query-params query-params :as :json))]
+      (collect-result
+       (request-fn (make-url path :version version))
+       request-fn
+       )))

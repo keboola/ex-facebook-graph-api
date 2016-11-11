@@ -14,7 +14,7 @@
   ;(println url rest (assoc (apply hash-map rest) :retry-handler
                                         ;retry-handler))
   ; (println rest)
-  (method url (assoc (apply hash-map rest) :retry-handler retry-handler :as :json))
+  (method url (assoc (apply hash-map rest) :retry-handler retry-handler))
   )
 
 (defn GET [url & rest]
