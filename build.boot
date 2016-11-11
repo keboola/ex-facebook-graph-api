@@ -5,6 +5,8 @@
                  [org.clojure/clojure "1.8.0"]
                  [cheshire "5.6.3"]
                  [clj-http "3.3.0"]
+                 [clojure-csv/clojure-csv "2.0.1"]
+                 [semantic-csv "0.1.0"]
                  ])
 (deftask feed
   "blabla"
