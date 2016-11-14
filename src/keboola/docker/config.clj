@@ -17,8 +17,8 @@
 
 (def load-config (memoize load-config-once))
 
-(defn out-dir-path [filename]
-  (str (check-path (str default-dir "out/tables")) filename)
+(defn out-dir-path [datadir]
+  (str (check-path datadir) "out/tables/")
   )
 
 
