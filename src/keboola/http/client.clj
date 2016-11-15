@@ -21,6 +21,9 @@
   (apply make-request http/get url rest)
   )
 
+(defn POST [url & rest ]
+  (apply make-request http/post url rest)
+  )
 
 ;(def memo-create-client (memoize http/create-client))
 

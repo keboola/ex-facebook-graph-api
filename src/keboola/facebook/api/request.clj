@@ -23,10 +23,18 @@
   (str graph-api-url (or version default-version) "/" path))
 
 
-(defn get-request [access-token path & {:keys [query version]}]
+(defn get-request-old [access-token path & {:keys [query version]}]
   (let [query-params (assoc query :access_token access-token)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))]
       (collect-result
        (request-fn (make-url path :version version))
        request-fn
        )))
+
+(defn get-request [access-token path & {:keys [query version]}]
+  (let [query-params (assoc query :access_token access-token :method "GET")
+        request-fn (fn [url] (client/POST url :form-params query-params :as :json))]
+    (collect-result
+     (request-fn (make-url path :version version))
+     request-fn))
+  )
