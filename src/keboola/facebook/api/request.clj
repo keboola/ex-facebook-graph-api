@@ -46,6 +46,20 @@
                (conj memo value (keyword (str object-name "_" (name key)))))
              '() object))
 
+(defn flatten-array [array-name array]
+  (loop [memo '()
+         cnt 0
+         object (first array)
+         other (rest array)
+         ]
+    (if (empty? object)
+      memo
+      (recur
+       (apply conj memo (mapcat (fn [[k v]] [v (str array-name "_" (name k) cnt) ]) object))
+       (inc cnt)
+       (first other)
+       (rest other)))))
+
 (defn filter-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value)
   return object with enhanced info(:keboola keyword) and all scalar values"
@@ -53,6 +67,7 @@
   (reduce-kv
    (fn [memo k v]
      (cond
+       (vector? v) (apply assoc memo (flatten-array (name k) v))
        (-> v map? not) (assoc memo k v )
        (and (map? v) (not (nested-object? v))) (apply assoc memo (flatten-object (name k) v))
        :else memo))
@@ -69,6 +84,7 @@
   result: vector with new nested-object like structure
   "
   [response params]
+  ;(println "next url" (get-next-page-url response) (:paging response))
   (if-let [next-page-url (get-next-page-url response )] ; process next api page if exists
     (let [new-response (:body ((:api-fn params) next-page-url))]
       [{
