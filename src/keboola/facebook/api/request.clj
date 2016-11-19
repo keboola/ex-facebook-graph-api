@@ -122,22 +122,26 @@
             ]
         (recur new-params (:body-data new-params) (rest all-objects) new-result)))))
 
+(defn make-paging-fn [access-token]
+  (fn [url] (client/GET url :query-params {:access_token access-token} :as :json))
+  )
+
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
-  [access-token path & {:keys [query version]}]
-  (let [query-params (assoc query :access_token access-token :method "GET")
-        full-url (make-url path :version version)
-        request-fn (fn [url] (client/POST url :form-params query-params :as :json))
+  [access-token {:keys [fields ids ids-title]} & {:keys [ version]}]
+  (let [form-params {:access_token access-token :method "GET" :fields fields :ids ids}
+        full-url (make-url "" :version version)
+        request-fn (fn [url] (client/POST url :form-params form-params :as :json))
         response (request-fn full-url)
-        next-page-api-fn (fn [url] (client/GET url :query-params {:access_token access-token} :as :json))
+        next-page-api-fn (make-paging-fn access-token)
         ]
     (map
      #(hash-map
        :account-id (first %)
        :data (page-and-collect {:parent-id (first %)
-                                :parent-type "page"
-                                :table-name "page"
+                                :parent-type ids-title
+                                :table-name ids-title
                                 :body-data [(second %)]
                                 :response (:body response)
                                 :api-fn next-page-api-fn}))
