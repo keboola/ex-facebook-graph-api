@@ -21,19 +21,6 @@
 ;;; use them as a param for reduce-result-sequence
 ;;; e.g (reduce-result-sequence data analyze)
 
-
-(defn analyze
-  "reducer fn - analyze items, returns all parent-types and tables columns used
-  result {:parent-types <set_of_parent_types> :columns <map_of_tables_with_columns>}"
-  [item memo]
-  (let [
-        parent-types (:parent-types memo {})
-        parent-type-name (-> item :keboola :parent-type)
-        parent-type-count (parent-types parent-type-name 0)]
-    (get-columns item
-     (assoc memo :parent-types (assoc parent-types parent-type-name (inc parent-type-count))))))
-
-
 (defn get-columns
   "reducer fn - extract all columns used in items for each table used
   result sample: {:columns {posts: #{id, message, story, create_time}}}"
@@ -47,6 +34,19 @@
         new-columns (assoc columns table-name new-table-columns)
         ]
     (assoc memo :columns new-columns )))
+
+
+(defn analyze
+  "reducer fn - analyze items, returns all parent-types and tables columns used
+  result {:parent-types <set_of_parent_types> :columns <map_of_tables_with_columns>}"
+  [item memo]
+  (let [
+        parent-types (:parent-types memo {})
+        parent-type-name (-> item :keboola :parent-type)
+        parent-type-count (parent-types parent-type-name 0)]
+    (get-columns item
+     (assoc memo :parent-types (assoc parent-types parent-type-name (inc parent-type-count))))))
+
 
 (defn get-x-items
   "reducer fn - extracts x number of items and returns them under :items keyword.
@@ -89,7 +89,7 @@
   returns analyzed sequenced data same as analyze reduce fn"
   [data & max-items-count]
   (let [max-count (if (some? max-items-count) (apply identity max-items-count) 0)
-        reduce-fn (chain-fns (partial stop-after-x-items max-items-count) analyze)]
+        reduce-fn (chain-fns (partial stop-after-x-items max-count) analyze)]
     (reduce-result-sequence data reduce-fn)))
 
 (defn parse-and-write [
