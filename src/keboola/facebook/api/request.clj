@@ -98,29 +98,24 @@
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
   [{:keys [parent-id parent-type table-name body-data api-fn response] :as init-params} ]
-  (loop [params init-params
-         this-object-data body-data
-         rest-objects []
-         result (lazy-seq)
-         ]
-    (if (and (empty? rest-objects) (empty? this-object-data))
-      result
-      (let [
-            new-values (map #(filter-values % (dissoc params :body-data :response :api-fn)) this-object-data)
-            next-page-data (get-next-page-data (:response params) params)
-            nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
-            all-objects (concat nested-objects rest-objects)
-            next-object (first all-objects)
-            new-params (assoc params
-                              :parent-id (:parent-id next-object)
-                              :parent-type (:parent-type next-object)
-                              :table-name (:name next-object)
-                              :response (:data next-object)
-                              :body-data (:data (:data next-object))
-                              )
-            new-result (concat result new-values)
-            ]
-        (recur new-params (:body-data new-params) (rest all-objects) new-result)))))
+  ((fn step [params this-object-data rest-objects]
+            (if (and (empty? rest-objects) (empty? this-object-data))
+              nil
+              (let [
+                    new-values (map #(filter-values % (dissoc params :body-data :response :api-fn)) this-object-data)
+                    next-page-data (get-next-page-data (:response params) params)
+                    nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
+                    all-objects (concat nested-objects rest-objects)
+                    next-object (first all-objects)
+                    new-params (assoc params
+                                      :parent-id (:parent-id next-object)
+                                      :parent-type (:parent-type next-object)
+                                      :table-name (:name next-object)
+                                      :response (:data next-object)
+                                      :body-data (:data (:data next-object))
+                                      )
+                    ]
+                (lazy-seq (cons new-values (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
 
 (defn make-paging-fn [access-token]
   (fn [url] (client/GET url :query-params {:access_token access-token} :as :json))
