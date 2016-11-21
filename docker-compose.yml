@@ -2,7 +2,7 @@ version: "2"
 services:
   app:
     build: .
-    image: keboola/ex-fb-graph-api
+    image: keboola/ex-facebook-insights
     volumes:
       - ./:/code
     ports:
