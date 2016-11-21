@@ -17,6 +17,17 @@
       :else memo
       )))
 
+(defn unfold-nested-sequence [data]
+  ((fn step [item other]
+     (if (some? item)
+         (lazy-seq
+          (if (map? item)
+            (cons item (step (first other) (rest other)))
+            (step (first item) (concat (rest item) other))
+            )))
+     ) (first data) (rest data)))
+
+
 ;;;;********REDUCER Functions****
 ;;; use them as a param for reduce-result-sequence
 ;;; e.g (reduce-result-sequence data analyze)
@@ -47,6 +58,13 @@
     (get-columns item
      (assoc memo :parent-types (assoc parent-types parent-type-name (inc parent-type-count))))))
 
+(defn filter-table-data [table-name item memo]
+  (let [items (:items memo (lazy-seq []))
+        cnt (:cnt memo 0)
+        ]
+    (if (= (-> item :keboola :table-name) table-name)
+      (assoc memo  :items (cons item items) :cnt (inc cnt))
+      memo)))
 
 (defn get-x-items
   "reducer fn - extracts x number of items and returns them under :items keyword.
@@ -92,21 +110,14 @@
         reduce-fn (chain-fns (partial stop-after-x-items max-count) analyze)]
     (reduce-result-sequence data reduce-fn)))
 
-(defn parse-and-write [
-                       {:keys
-                        [
-                         parse-id
-                         parent-id
-                         parent-type
-                         body-name
-                         body-data
-                         out-path
-                         ]}]
-  ;; get or create channel(name)
-  ;; while body data
-  ;; get one row
-  ;; filter row strings only and put to channell
-  ;; if row contains object then recur parse(objectName, rowId, parent-type_name, object)
 
-  nil
-  )
+(defn analyze-seq
+  ([data] (analyze-seq data 0))
+  ([data max-iter-count]
+   (loop [memo (analyze (first data) {})
+          other (rest data)
+          cnt 1
+          ]
+     (if (and (not= cnt max-iter-count) (some? (first other)))
+       (recur (analyze (first other) memo) (rest other) (inc cnt))
+       (assoc memo :cnt cnt)))))
