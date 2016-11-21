@@ -9,6 +9,7 @@
                  [org.clojure/tools.cli "0.3.5"]
                  [com.taoensso/timbre "4.7.4"]
                  [semantic-csv "0.1.0"]
+                 [org.clojure/core.async "0.2.395"]
                  ])
 
 (require '[keboola.facebook.insights-extractor.core])
