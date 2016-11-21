@@ -18,6 +18,6 @@ ENV BOOT_VERSION=2.6.0
 RUN boot repl -e '(System/exit 0)' && rm -rf target
 ADD . /code
 WORKDIR /code
-RUN boot
+RUN boot build-insights
 EXPOSE 1111
-ENTRYPOINT ["/usr/bin/boot"]
+ENTRYPOINT ["java", "-jar", "targetinsights/project.jar", "-d" , "/data/"]
