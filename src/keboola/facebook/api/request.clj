@@ -124,9 +124,9 @@
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
-  [access-token {:keys [fields ids ids-title]} & {:keys [ version]}]
+  [access-token {:keys [fields ids ids-title path]} & {:keys [ version]}]
   (let [form-params {:access_token access-token :method "GET" :fields fields :ids ids}
-        full-url (make-url "" :version version)
+        full-url (make-url path :version version)
         request-fn (fn [url] (client/POST url :form-params form-params :as :json))
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
