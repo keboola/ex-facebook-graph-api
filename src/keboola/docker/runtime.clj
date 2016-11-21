@@ -16,7 +16,7 @@
   (exit 1)
   )
 
-(defn log-strings [strings]
+(defn log-strings [& strings]
   (println (apply str strings)))
 
 (defn log [what]

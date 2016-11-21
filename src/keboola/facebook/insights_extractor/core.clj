@@ -1,10 +1,10 @@
 (ns keboola.facebook.insights-extractor.core
+  (:gen-class)
   (:require [clojure.tools.cli :refer [parse-opts]]
             [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :as docker-runtime]
             [keboola.facebook.insights-extractor.query :as query]
-            [clojure.string :as string])
-  (:gen-class))
+            [clojure.string :as string]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
 
@@ -16,7 +16,7 @@
        (string/join \newline)))
 
 (defn run [credentials parameters out-dir]
-  (map #(query/run-query % credentials out-dir) (:queries parameters))
+  (mapv #(query/run-query % credentials out-dir) (:queries parameters))
   )
 
 (defn prepare-and-run [datadir]
