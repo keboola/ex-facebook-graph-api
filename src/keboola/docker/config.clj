@@ -17,8 +17,14 @@
 
 (def load-config (memoize load-config-once))
 
+(defn mkdirp [path]
+  (let [dir (java.io.File. path)]
+    (if (.exists dir)
+      path
+      (.mkdirs dir))))
+
 (defn out-dir-path [datadir]
-  (str (check-path datadir) "out/tables/")
+  (mkdirp (str (check-path datadir) "out/tables/"))
   )
 
 
