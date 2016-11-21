@@ -2,6 +2,7 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :as docker-runtime]
+            [keboola.facebook.insights-extractor.query :as query]
             [clojure.string :as string])
   (:gen-class))
 
@@ -15,7 +16,7 @@
        (string/join \newline)))
 
 (defn run [credentials parameters out-dir]
-
+  (map #(query/run-query % credentials out-dir) (:queries parameters))
   )
 
 (defn prepare-and-run [datadir]
