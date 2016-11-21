@@ -6,3 +6,9 @@ repl:
 
 bash:
 	docker-compose run --rm --entrypoint /bin/bash app
+
+build:
+	docker build -t keboola/ex-facebook-insights .
+
+run:
+	docker run --rm -i -t -v $${PWD}/tmp:/data keboola/ex-facebook-insights
