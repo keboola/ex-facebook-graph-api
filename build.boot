@@ -12,8 +12,6 @@
                  [org.clojure/core.async "0.2.395"]
                  ])
 
-(require '[keboola.facebook.insights-extractor.core])
-
 (deftask run-insights
   "run insights extractor"
   [d datadir path str "data directory path"]
@@ -28,11 +26,11 @@
   []
   (comp
    (aot :all true)
-   (pom :project 'ex-insights
+   (pom :project 'exinsights
         :version "0.0.1")
    (uber)
    (jar :main 'keboola.facebook.insights-extractor.core)
-   (target "target-insights")))
+   (target :dir #{"targetinsights"})))
 
 (deftask start-docker-repl
   "run repl server on 1111 port"
