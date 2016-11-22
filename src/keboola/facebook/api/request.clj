@@ -46,7 +46,10 @@
                (conj memo value (keyword (str object-name "_" (name key)))))
              '() object))
 
-(defn flatten-array [array-name array]
+(defn flatten-array
+  "flattens array of object with same structure prefixing its keys with array-name
+  returns list of key-value pairs"
+  [array-name array]
   (loop [memo '()
          cnt 0
          object (first array)
