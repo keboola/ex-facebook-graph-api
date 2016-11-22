@@ -1,5 +1,7 @@
 (ns keboola.docker.config
-  (:require [cheshire.core :refer [parse-string]]))
+  (:require [cheshire.core :refer [parse-string]]
+            [clojure.string :refer [trim]]
+            ))
 
 (def default-dir "/data/")
 
@@ -12,7 +14,7 @@
   ([] (load-config-once default-dir))
   ([datadir]
    (let [dirpath (check-path datadir)
-         file-content (slurp (str dirpath "config.json"))]
+         file-content (slurp (trim (str dirpath "config.json")))]
      (parse-string file-content true))))
 
 (def load-config (memoize load-config-once))
@@ -24,7 +26,10 @@
       (.mkdirs dir))))
 
 (defn out-dir-path [datadir]
-  (mkdirp (str (check-path datadir) "out/tables/"))
+  (let [result
+        (mkdirp (str (check-path (trim datadir)) "out/tables/"))]
+    result
+    )
   )
 
 

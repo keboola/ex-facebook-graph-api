@@ -36,7 +36,7 @@
                                           (make-csv-write-chan
                                            (filter-table-data-fn lazy-data-seq table-name)
                                            (conj columns :parent-id :parent-type)
-                                           (str out-dir "/" name "_" table-name) ))
+                                           (str out-dir name "_" table-name) ))
                                     ) [] tables-columns)
     ]
     (runtime/log-strings "Writing output to csv files. Analyzed structure:" analyzed-structure)
