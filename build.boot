@@ -7,18 +7,17 @@
                  [clj-http "3.3.0"]
                  [clojure-csv/clojure-csv "2.0.1"]
                  [org.clojure/tools.cli "0.3.5"]
-                 [com.taoensso/timbre "4.7.4"]
                  [semantic-csv "0.1.0"]
                  [org.clojure/core.async "0.2.395"]
                  ])
-
+(require '[keboola.facebook.insights-extractor.core])
 (deftask run-insights
   "run insights extractor"
-  [d datadir path str "data directory path"]
-  (if-not datadir
-    (do (boot.util/fail "data directory path is requried. ")
+  [x args VAL  str "arguments string for main- function"]
+  (if-not args
+    (do (boot.util/fail "arguments string x is requried. ")
         (*usage*)))
-  ((resolve 'keboola.facebook.insights-extractor.core/-main) datadir)
+  ((resolve 'keboola.facebook.insights-extractor.core/-main) args)
   )
 
 (deftask build-insights

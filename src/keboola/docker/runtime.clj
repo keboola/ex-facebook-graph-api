@@ -1,5 +1,4 @@
 (ns keboola.docker.runtime
-  (:require [taoensso.timbre :as timbre])
   )
 
 (defn exit [status]
