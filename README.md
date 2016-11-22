@@ -95,3 +95,6 @@ more info about authorization registration here: https://github.com/keboola/oaut
 # Development
 The app is written in Clojure(1.8), evaluated and build via [Boot-clj](https://github.com/boot-clj/boot#install) which requires [Java Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
 To try the app locally check target commands in the [Makefile](Makefile)
+For example to build and run the app locally type from the repo root:
+
+`make build-jar run-jar`
