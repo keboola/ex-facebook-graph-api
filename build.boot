@@ -1,6 +1,6 @@
 #!/usr/bin/env boot
 (set-env!
- :source-paths #{"src"}
+ :source-paths #{"src" "test"}
  :dependencies '[
                  [org.clojure/clojure "1.8.0"]
                  [cheshire "5.6.3"]

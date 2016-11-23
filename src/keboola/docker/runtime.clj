@@ -5,9 +5,9 @@
   (System/exit status)
   )
 
-(defn log-error [error-msg]
+(defn log-error [& error-msg]
   (binding [*out* *err*]
-    (println error-msg))
+    (apply println error-msg))
   )
 
 (defn error [error-msg]
@@ -16,7 +16,7 @@
   )
 
 (defn log-strings [& strings]
-  (println (apply str strings)))
+  (apply println strings))
 
 (defn log [what]
   (println what)
