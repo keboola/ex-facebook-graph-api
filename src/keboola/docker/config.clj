@@ -7,8 +7,8 @@
 
 (defn check-path [path]
   (if (clojure.string/ends-with? path "/")
-    path
-    (str path "/")))
+    (trim path)
+    (str (trim path) "/")))
 
 (defn- load-config-once
   ([] (load-config-once default-dir))
@@ -21,15 +21,19 @@
 
 (defn mkdirp [path]
   (let [dir (java.io.File. path)]
-    (if (.exists dir)
-      path
-      (.mkdirs dir))))
+    (if-not (.exists dir)
+      (.mkdirs dir))
+    path))
 
-(defn out-dir-path [datadir]
-  (let [result
-        (mkdirp (str (check-path (trim datadir)) "out/tables/"))]
-    result
-    )
+(defn out-dir-path
+  ([]
+   (println "no param")
+   (out-dir-path "./"))
+  ([datadir]
+   (let [result (mkdirp (str (check-path (trim datadir)) "out/tables/"))]
+     (println "param" datadir)
+     result
+     ))
   )
 
 
