@@ -2,6 +2,7 @@ version: "2"
 services:
   app:
     build: .
+    entrypoint: "boot"
     image: keboola/ex-facebook-insights
     volumes:
       - ./:/code
