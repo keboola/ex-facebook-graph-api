@@ -27,12 +27,12 @@
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
   *NIX systems. Returns a File object pointing to the new directory. Raises an
-  exception if the directory couldn't be created after 10000 tries."
+  exception if the directory couldn't be created after 100 tries."
   [prefix]
   (let [base-dir (java.io.File. (System/getProperty "java.io.tmpdir"))
         base-name (str prefix (java.util.Date.) "-" (long (rand 100)) "-")
         tmp-base (mk-path base-dir base-name)
-        max-attempts 10000]
+        max-attempts 100]
     (loop [num-attempts 1]
       (if (= num-attempts max-attempts)
         (throw (Exception. (str "Failed to create temporary directory after " max-attempts " attempts.")))
