@@ -2,12 +2,13 @@
 (set-env!
  :source-paths #{"src" "test"}
  :dependencies '[
-                 [org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojure "1.9.0-alpha14"]
                  [cheshire "5.6.3"]
                  [clj-http "3.3.0"]
                  [clojure-csv/clojure-csv "2.0.1"]
                  [org.clojure/tools.cli "0.3.5"]
                  [semantic-csv "0.1.0"]
+                 [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "0.2.395"]
                  ])
 (require '[keboola.facebook.insights-extractor.core])
