@@ -1,5 +1,13 @@
-(ns keboola.facebook.api.parser)
+(ns keboola.facebook.api.parser
+  (:require   [clojure.spec :as s]
+              [keboola.facebook.api.specs :as ds]
+              ))
 
+(s/fdef unfold-nested-sequence
+        :args (s/cat
+               :data (s/coll-of (s/coll-of ::ds/fb-table-row :max-count 5)
+                                :min-count 1 :max-count 5))
+        :ret (s/coll-of ::ds/fb-table-row))
 (defn unfold-nested-sequence
   "flatten sequence of sequences(of maps) into sequence of maps
   returns lazy sequence of maps"
@@ -13,10 +21,13 @@
             )))
      ) (first data) (rest data)))
 
-
+(s/fdef get-columns
+        :args (s/cat :item ::ds/fb-table-row
+                     :memo (s/nilable map?))
+        :ret (s/keys :req-un [::ds/columns]))
 (defn get-columns
   "reducer fn - extract all columns used in items for each table used
-  result sample: {:columns {posts: #{id, message, story, create_time}}}"
+  result sample: {:columns {posts: #{:id, message, story, create_time}}}"
   [item memo]
   (let [
         table-row (dissoc item :keboola)
@@ -28,6 +39,11 @@
         ]
     (assoc memo :columns new-columns )))
 
+(s/fdef analyze
+        :args (s/cat :item ::ds/fb-table-row
+                     :memo (s/nilable map?))
+        :ret (s/keys :req-un [::ds/parent-types ::ds/columns] ))
+
 (defn analyze
   "reducer fn - analyze items, returns all parent-types and tables columns used
   result {:parent-types <set_of_parent_types> :columns <map_of_tables_with_columns>}"
@@ -37,15 +53,25 @@
         parent-type-name (-> item :keboola :parent-type)
         parent-type-count (parent-types parent-type-name 0)]
     (get-columns item
-     (assoc memo :parent-types (assoc parent-types parent-type-name (inc parent-type-count))))))
+                 (assoc memo :parent-types (assoc parent-types parent-type-name (inc parent-type-count))))))
+
+(s/fdef analyze-seq
+        :args (s/cat :data (s/coll-of ::ds/fb-table-row :min-count 1 :max-count 2)
+                     :max-iter-count (s/or :pos-int pos-int? :zero zero?))
+        :fn (fn [val]
+              (if (= 0 (-> val :args :max-iter-count second))
+                (= (count (-> val :args :data)) (-> val :ret :cnt))
+                (and
+                 (>= (count (-> val :args :data)) (-> val :ret :cnt))
+                 (>= (-> val :args :max-iter-count second) (-> val :ret :cnt)))))
+        :ret (s/keys :req-un [::ds/cnt]))
 
 (defn analyze-seq
   ([data] (analyze-seq data 0))
   ([data max-iter-count]
    (loop [memo (analyze (first data) {})
           other (rest data)
-          cnt 1
-          ]
+          cnt 1]
      (if (and (not= cnt max-iter-count) (some? (first other)))
        (recur (analyze (first other) memo) (rest other) (inc cnt))
        (assoc memo :cnt cnt)))))
