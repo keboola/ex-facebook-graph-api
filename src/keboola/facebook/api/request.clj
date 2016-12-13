@@ -1,21 +1,41 @@
 (ns keboola.facebook.api.request
-  (:require [keboola.http.client :as client])
-  )
+  (:require   [clojure.spec :as s]
+              [keboola.facebook.api.specs :as ds]
+              [keboola.http.client :as client]))
 
 (def graph-api-url "https://graph.facebook.com/")
+(s/def ::version string?)
 (def default-version "v2.8")
 
+(s/fdef make-url
+        :args (s/or :path-only (s/cat :path string? )
+                    :path-and-version (s/cat :path string? :version string?))
+        :fn #(-> % :ret (clojure.string/starts-with? graph-api-url))
+        :ret string?)
 
 (defn make-url
   "return absolute url to fb api given relative @path and @version"
-  [path & {:keys [version]}]
-  (str graph-api-url (or version default-version) "/" path))
+  ([path] (make-url path default-version))
+  ([path version]
+   (str graph-api-url version "/" path)))
 
+(s/fdef nested-object?
+        :args (s/cat :object (s/or :nested (s/keys :req-un [::ds/data])
+                                   :simple ::ds/fb-object))
+        :ret boolean?
+        :fn (fn [val]
+              (if (= :simple (-> val :args :object first))
+                (= false (-> val :ret))
+                (= true (-> val :ret) ))))
 (defn nested-object?
   "Returns true if objet is map and contains :data keyword"
   [object]
   (and (map? object) (contains? object :data)))
 
+(s/fdef get-nested-objects
+        :args (s/cat :body-data ::ds/data
+                     :params ::ds/keboola)
+        :ret (s/coll-of map? :into []))
 (defn get-nested-objects
   "Traverse body-data array and take out nested-object like structures.
   Return array of objects with keys :name :data :parent-id :parent-type "
@@ -37,6 +57,10 @@
        memo))
    [] body-data))
 
+(s/fdef flatten-object
+        :args (s/cat :object-name string?
+                     :object ::ds/simple-object)
+        :ret (s/* (s/cat :keyword keyword? :string string?)))
 (defn flatten-object
   "take all key-value pairs of object and flatten it to :@object-name_key value sequences.
   Return list of flattened key values
@@ -46,6 +70,10 @@
                (conj memo value (keyword (str object-name "_" (name key)))))
              '() object))
 
+(s/fdef flatten-array
+        :args (s/cat :array-name string?
+                     :array ::ds/simple-objects-array)
+        :ret (s/* string?))
 (defn flatten-array
   "flattens array of object with same structure prefixing its keys with array-name
   returns list of key-value pairs"
@@ -63,6 +91,11 @@
        (first other)
        (rest other)))))
 
+(s/fdef filter-values
+        :args (s/cat :row ::ds/fb-object
+                     :params ::ds/keboola)
+        :fn #(-> % :ret (contains? :keboola))
+        :ret (s/map-of keyword? (s/or :value ::ds/table-value :object map?)))
 (defn filter-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value)
   return object with enhanced info(:keboola keyword) and all scalar values"

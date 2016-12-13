@@ -1,18 +1,11 @@
 (ns keboola.facebook.api.parser-test
   (:require [keboola.facebook.api.parser :as sut]
             [clojure.test :refer :all]
-            [clojure.spec.test :as stest]
             [clojure.spec :as s]
-
+            [keboola.test-utils.core :refer [test-and-check]]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.properties :as prop]))
 
-(defn test-and-check
-  ([spec-test] (test-and-check spec-test 1000))
-  ([spec-test num-tests]
-   (let [result (stest/summarize-results
-                 (stest/check spec-test {:clojure.spec.test.check/opts {:num-tests num-tests}}))]
-     (= (:total result) (:check-passed result)))))
 
 (deftest test-unfold-nested-sequence
   (is (test-and-check `sut/unfold-nested-sequence 20)))

@@ -1,7 +1,14 @@
 (ns keboola.test-utils.core
-  (:require [clojure.test :refer [is]] )
-  (:require [clojure.string :as string])
-  )
+  (:require [clojure.string :as string]
+            [clojure.spec.test :as stest]
+            [clojure.test :refer [is]]))
+
+(defn test-and-check
+  ([spec-test] (test-and-check spec-test 1000))
+  ([spec-test num-tests]
+   (let [result (stest/summarize-results
+                 (stest/check spec-test {:clojure.spec.test.check/opts {:num-tests num-tests}}))]
+     (= (:total result) (:check-passed result)))))
 
 (defmacro with-err-str
   "Evaluates exprs in a context in which *err* is bound to a fresh
