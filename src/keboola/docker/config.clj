@@ -35,6 +35,8 @@
      result
      ))
   )
+(defn config [& datadir]
+  (apply load-config datadir))
 
 
 (defn parameters [& datadir]
