@@ -93,13 +93,14 @@
 
 (s/fdef filter-values
         :args (s/cat :row ::ds/fb-object
-                     :params ::ds/keboola)
+                     :params ::ds/keboola
+                     :account-id string?)
         :fn #(-> % :ret (contains? :keboola))
         :ret (s/map-of keyword? (s/or :value ::ds/table-value :object map?)))
 (defn filter-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value)
   return object with enhanced info(:keboola keyword) and all scalar values"
-  [row params]
+  [row params account-id]
   (reduce-kv
    (fn [memo k v]
      (cond
@@ -107,7 +108,7 @@
        (-> v map? not) (assoc memo k v )
        (and (map? v) (not (nested-object? v))) (apply assoc memo (flatten-object (name k) v))
        :else memo))
-   {:keboola params}
+   (assoc {:keboola params} :account-id account-id)
    row))
 
 (defn get-next-page-url
@@ -133,12 +134,12 @@
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [parent-id parent-type table-name body-data api-fn response] :as init-params} ]
+  [{:keys [account-id parent-id parent-type table-name body-data api-fn response] :as init-params} ]
   ((fn step [params this-object-data rest-objects]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
-                    new-values (map #(filter-values % (dissoc params :body-data :response :api-fn)) this-object-data)
+                    new-values (map #(filter-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
                     next-page-data (get-next-page-data (:response params) params)
                     nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
@@ -162,7 +163,7 @@
   Returns collection of maps of key-value pairs page-id -> result_data "
   [access-token {:keys [fields ids ids-title path]} & {:keys [ version]}]
   (let [form-params {:access_token access-token :method "GET" :fields fields :ids ids}
-        full-url (make-url path :version version)
+        full-url (make-url path version)
         request-fn (fn [url] (client/POST url :form-params form-params :as :json))
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
@@ -170,14 +171,15 @@
     (map
      #(hash-map
        :account-id (first %)
-       :data (page-and-collect {:parent-id (first %)
+       :data (page-and-collect {
+                                :account-id (name (first %))
+                                :parent-id (first %)
                                 :parent-type ids-title
                                 :table-name ids-title
                                 :body-data [(second %)]
                                 :response (:body response)
                                 :api-fn next-page-api-fn}))
-     (:body response))
-    ))
+     (:body response))))
 
 (defn get-accounts [access-token & {:keys [version]}]
   (get-in (client/GET (make-url "me/accounts" version)

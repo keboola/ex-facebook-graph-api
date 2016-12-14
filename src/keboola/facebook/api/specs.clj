@@ -27,7 +27,7 @@
 (s/def ::nested-object (s/tuple keyword? (s/keys :req-un [::data])))
 (s/def ::fb-value (s/or :scalar (s/tuple keyword? ::table-value)
                         :nested ::nested-object
-                        :key-values-object ::key-values-object))
+                        :key-values-object ::simple-object))
 
 (s/def ::fb-object (s/coll-of ::fb-value :into {} :max-count 3 :min-count 1))
 (s/def ::data (s/coll-of ::fb-object

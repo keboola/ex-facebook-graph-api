@@ -14,13 +14,15 @@
 (defn make-csv-write-chan [get-data-fn columns filepath]
   (async/thread
     (csv/write filepath columns (get-data-fn))
-    true)
-  )
+    true))
+
 (defn filter-table-data-fn [data table-name]
   (fn []
-    (map #(assoc % :parent-id (-> % :keboola :parent-id) :parent-type (-> % :keboola :parent-type))
-         (filter #(= table-name (-> % :keboola :table-name)) data)))
-  )
+    (map #(assoc %
+                 :account-id (-> % :keboola :account-id)
+                 :parent-id (-> % :keboola :parent-id)
+                 :parent-type (-> % :keboola :parent-type))
+         (filter #(= table-name (-> % :keboola :table-name)) data))))
 
 (defn run-nested-query [token out-dir {:keys [name path fields ids ids-title version]}]
   (let [nested-data (request/nested-request token
@@ -35,10 +37,9 @@
                                     (conj memo
                                           (make-csv-write-chan
                                            (filter-table-data-fn lazy-data-seq table-name)
-                                           (conj columns :parent-id :parent-type)
+                                           (conj columns :parent-id :parent-type :account-id)
                                            (str out-dir name "_" table-name) ))
-                                    ) [] tables-columns)
-    ]
+                                    ) [] tables-columns)]
     (runtime/log-strings "Writing output to csv files. Analyzed structure:" analyzed-structure)
     (mapv #(async/<!! %) write-channels)
     (runtime/log-strings "Run query " name " finished" )
