@@ -179,6 +179,11 @@
      (:body response))
     ))
 
+(defn get-accounts [access-token & {:keys [version]}]
+  (get-in (client/GET (make-url "me/accounts" version)
+                      :query-params {:access_token access-token} :as :json)
+          [:body :data]))
+
 ;;;; DEPRECATED
 (defn get-response-data [response]
   (get-in response [:data])

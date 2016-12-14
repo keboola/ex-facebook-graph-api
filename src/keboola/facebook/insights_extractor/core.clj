@@ -4,6 +4,7 @@
             [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :as docker-runtime]
             [keboola.facebook.insights-extractor.query :as query]
+            [keboola.facebook.insights-extractor.sync-actions :as sync-actions]
             [clojure.string :as string]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
@@ -19,14 +20,19 @@
   (mapv #(query/run-query % credentials out-dir) (:queries parameters))
   )
 
+
 (defn prepare-and-run [datadir]
   (let [ parameters (docker-config/parameters datadir)
+         config (docker-config/config)
+         action (:action config)
          credentials (docker-config/user-credentials datadir)]
     (cond
       (empty? credentials) (docker-runtime/error "Missing facebook credentials")
       (empty? (:token credentials)) (docker-runtime/error "Missing facebook token")
       )
-    (run credentials parameters (docker-config/out-dir-path datadir))))
+    (case action
+      "accounts" (sync-actions/accounts credentials config)
+      (run credentials parameters (docker-config/out-dir-path datadir)))))
 
 (defn -main [& args]
   (let [{:keys [options summary errors] :as parsed-args} (parse-opts args cli-options)]
