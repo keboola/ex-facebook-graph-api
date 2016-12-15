@@ -48,5 +48,4 @@
       [data (get-in
              (apply load-config datadir)
              [:authorization :oauth_api :credentials :#data])]
-    (parse-string data true))
-  )
+    (parse-string data true)))

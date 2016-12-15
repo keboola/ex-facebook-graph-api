@@ -1,4 +1,5 @@
 (ns keboola.docker.runtime
+  (:require [cheshire.core :refer [generate-string]])
   )
 
 (defn exit [status]
@@ -21,3 +22,8 @@
 (defn log [what]
   (println what)
   )
+
+(defn save-manifest [csvfile-path body]
+  (let [manifest (select-keys body [:destination :columns :incremental :primary_key :delimiter :enclosure])
+        manifest-path (str csvfile-path ".manifest")]
+    (spit manifest-path (generate-string manifest))))
