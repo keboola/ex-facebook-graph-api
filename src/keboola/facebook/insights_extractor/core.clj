@@ -37,8 +37,7 @@
          credentials (docker-config/user-credentials datadir)]
     (cond
       (empty? credentials) (docker-runtime/error "Missing facebook credentials")
-      (empty? (:token credentials)) (docker-runtime/error "Missing facebook token")
-      )
+      (empty? (:token credentials)) (docker-runtime/error "Missing facebook token"))
     (case action
       "accounts" (sync-actions/accounts credentials config)
       (run credentials parameters (docker-config/out-dir-path datadir)))))
