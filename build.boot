@@ -10,8 +10,10 @@
                  [semantic-csv "0.1.0"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "0.2.395"]
+                 [adzerk/boot-test "1.1.2" :scope "test"]
                  ])
 (require '[keboola.facebook.insights-extractor.core])
+(require '[adzerk.boot-test :refer :all])
 (deftask run-insights
   "run insights extractor"
   [x args VAL  str "arguments string for main- function"]

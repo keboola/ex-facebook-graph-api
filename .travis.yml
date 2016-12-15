@@ -1,0 +1,25 @@
+sudo: required
+
+language: bash
+
+services:
+  - docker
+
+before_install:
+  - docker-compose -v
+
+install:
+  - docker-compose build app
+
+script:
+  - docker-compose run app test
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: ./deploy.sh
+  on:
+    tags: true
+
+#notifications:
+#  slack: $SLACK_INTEGRATION_DOMAIN:$SLACK_INTEGRATION_KEY
