@@ -92,6 +92,22 @@
        (first other)
        (rest other)))))
 
+(defn flatten-value-object [key1 object-value]
+  (cond
+    (map? object-value) (map (fn [[key2 val]] {:key1 key1 :key2 (name key2) :value val})
+                             object-value)
+    :else (list {:key1 key1 :key2 "" :value object-value})))
+
+(defn flatten-array-value [item]
+  (map
+   #(assoc % :end_time (:end_time item))
+   (cond
+     (-> item :value map?) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) (:value item))
+     :else (list {:key1 "value" :value (:value item)}))))
+
+(defn flatten-array-2 [array-name array]
+  (mapcat flatten-array-value array))
+
 (s/fdef filter-values
         :args (s/cat :row ::ds/fb-object
                      :params ::ds/keboola
@@ -109,7 +125,7 @@
        (-> v map? not) (assoc memo k v )
        (and (map? v) (not (nested-object? v))) (apply assoc memo (flatten-object (name k) v))
        :else memo))
-   (assoc {:keboola params} :account-id account-id)
+   {:keboola params :account-id account-id}
    row))
 
 (defn get-next-page-url
@@ -140,7 +156,8 @@
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
-                    new-values (map #(filter-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
+                    new-rows (map #(filter-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
+
                     next-page-data (get-next-page-data (:response params) params)
                     nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
@@ -153,7 +170,7 @@
                                       :body-data (:data (:data next-object))
                                       )
                     ]
-                (lazy-seq (cons new-values (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
+                (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
 
 (defn make-paging-fn [access-token]
   (fn [url] (client/GET url :query-params {:access_token access-token} :as :json))
