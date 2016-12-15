@@ -27,11 +27,9 @@
 
 (defn out-dir-path
   ([]
-   (println "no param")
    (out-dir-path "./"))
   ([datadir]
    (let [result (mkdirp (str (check-path (trim datadir)) "out/tables/"))]
-     (println "param" datadir)
      result
      ))
   )
