@@ -12,7 +12,7 @@
             ))
 
 (defn make-csv-write-chan [get-data-fn columns filepath]
-  (let [manifest {:incremental true :primary_key ["id" "account-id"]}]
+  (let [manifest {:incremental true :primary_key ["id" "account_id"]}]
     (runtime/save-manifest filepath manifest)
     (async/thread
       (csv/write filepath columns (get-data-fn))
