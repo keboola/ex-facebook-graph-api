@@ -1,6 +1,7 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.specs :as ds]
+              [keboola.docker.runtime :refer [log-strings]]
               [keboola.http.client :as client]))
 
 (def graph-api-url "https://graph.facebook.com/")
@@ -168,6 +169,7 @@
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
         ]
+    (log-strings "calling" full-url)
     (map
      #(hash-map
        :account-id (first %)
