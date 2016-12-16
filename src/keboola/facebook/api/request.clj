@@ -43,8 +43,7 @@
   [body-data params]
   (reduce
    (fn [memo, row]
-     (if-let [
-              objects (reduce-kv (fn [m k v]
+     (if-let [objects (reduce-kv (fn [m k v]
                                    (if (nested-object? v)
                                      (conj m
                                            {:name (name k)
@@ -52,81 +51,89 @@
                                             :parent-id (:id row)
                                             :parent-type (str (:parent-type params) "_" (name k))
                                             }) m))
-                                 [] row)
-              ]
+                                 [] row)]
        (concat memo objects)
        memo))
    [] body-data))
 
-(s/fdef flatten-object
-        :args (s/cat :object-name string?
-                     :object ::ds/simple-object)
-        :ret (s/* (s/cat :keyword keyword? :string string?)))
-(defn flatten-object
-  "take all key-value pairs of object and flatten it to :@object-name_key value sequences.
-  Return list of flattened key values
-  "
-  [object-name object]
-  (reduce-kv (fn [memo key value]
-               (conj memo value (keyword (str object-name "_" (name key)))))
-             '() object))
+(s/fdef flatten-value-object
+        :args (s/cat :key1 string?
+                     :object-value (s/or :scalar ::ds/table-value :object ::ds/simple-object))
+        :ret (s/* ::ds/key1-key2-value))
 
-(s/fdef flatten-array
-        :args (s/cat :array-name string?
-                     :array ::ds/simple-objects-array)
-        :ret (s/* string?))
-(defn flatten-array
-  "flattens array of object with same structure prefixing its keys with array-name
-  returns list of key-value pairs"
-  [array-name array]
-  (loop [memo '()
-         cnt 0
-         object (first array)
-         other (rest array)
-         ]
-    (if (empty? object)
-      memo
-      (recur
-       (apply conj memo (mapcat (fn [[k v]] [v (str array-name "_" (name k) cnt) ]) object))
-       (inc cnt)
-       (first other)
-       (rest other)))))
-
-(defn flatten-value-object [key1 object-value]
+(defn flatten-value-object
+  "flattens object values and prepends and prepend key1"
+  [key1 object-value]
   (cond
     (map? object-value) (map (fn [[key2 val]] {:key1 key1 :key2 (name key2) :value val})
                              object-value)
     :else (list {:key1 key1 :key2 "" :value object-value})))
 
-(defn flatten-array-value [item]
+(s/fdef flatten-array-value
+        :args (s/cat :item (s/or :scalar ::ds/table-value :object ::ds/complex-object)
+                     :end_time ::ds/end_time)
+        :ret (s/* (s/merge (s/keys :req-un [::ds/end_time]) ::ds/key1-key2-value)))
+
+(defn flatten-array-value [item end_time]
   (map
-   #(assoc % :end_time (:end_time item))
+   #(assoc % :end_time end_time)
    (cond
-     (-> item :value map?) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) (:value item))
-     :else (list {:key1 "value" :value (:value item)}))))
+     (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
+     :else (list {:key1 "" :key2 "" :value item}))))
 
-(defn flatten-array-2 [array-name array]
-  (mapcat flatten-array-value array))
+(s/fdef flatten-array
+        :args (s/cat :array (s/coll-of ::ds/insights))
+        :ret (s/* (s/map-of keyword? ::ds/table-value)))
+(defn flatten-array
+  "flattens array of object with same structure prefixing its keys with array-name
+  returns list of key-value pairs"
+  [array]
+  (mapcat #(flatten-array-value (:value %) (:end_time %)) array))
 
-(s/fdef filter-values
+
+(s/fdef filter-scalars
+        :args (s/cat :row (s/map-of keyword? (s/or :scalar ::ds/table-value
+                                                   :object map?
+                                                   :seq sequential?)))
+        :ret (s/map-of keyword? ::ds/table-value))
+(defn filter-scalars [row]
+  (into {} (filter (fn [[k v]]
+                     (and (-> v map? not) (-> v sequential? not))
+                     ) row)))
+
+(s/fdef filter-flatten-objects
+        :args (s/cat :row ::ds/complex-object)
+        :ret (s/map-of keyword? ::ds/table-value))
+(defn filter-flatten-objects
+  [row]
+  (let [simple-objects (filter (fn [[k v]] (and (-> v map?) (-> v nested-object? not))) row)]
+    (apply hash-map
+           (mapcat (fn [[object-name object]]
+                     (mapcat (fn [[k v]]
+                               (list (keyword (str (name object-name) "_" (name k))) v))
+                             object))
+                   simple-objects))))
+
+#_(s/fdef filter-values
         :args (s/cat :row ::ds/fb-object
                      :params ::ds/keboola
                      :account-id string?)
         :fn #(-> % :ret (contains? :keboola))
         :ret (s/map-of keyword? (s/or :value ::ds/table-value :object map?)))
-(defn filter-values
-  "traverse object(@row) values and take only scalar values or flatten simple objects(key->value)
-  return object with enhanced info(:keboola keyword) and all scalar values"
+(defn extract-values
+  "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
+  return list of objects with enhanced info(:keboola keyword) and all scalar values"
   [row params account-id]
-  (reduce-kv
-   (fn [memo k v]
-     (cond
-       (vector? v) (apply assoc memo (flatten-array (name k) v))
-       (-> v map? not) (assoc memo k v )
-       (and (map? v) (not (nested-object? v))) (apply assoc memo (flatten-object (name k) v))
-       :else memo))
-   {:keboola params :account-id account-id}
-   row))
+  (let [scalars (filter-scalars row)
+        objects-flatten (filter-flatten-objects row )
+        all-simple-scalars (merge {:account-id account-id :keboola params} scalars objects-flatten)
+        arrays (filter (fn [[k v]] (vector? v)) row)
+        merged-arrays (map
+                       #(merge all-simple-scalars %) (mapcat (fn [[_ array]]
+                                                               (flatten-array array)) arrays))]
+    (if (empty? merged-arrays)
+      (list all-simple-scalars)
+      merged-arrays)))
 
 (defn get-next-page-url
   "return url to the next page from @response param"
@@ -156,7 +163,7 @@
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
-                    new-rows (map #(filter-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
+                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
 
                     next-page-data (get-next-page-data (:response params) params)
                     nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
@@ -167,9 +174,7 @@
                                       :parent-type (:parent-type next-object)
                                       :table-name (:name next-object)
                                       :response (:data next-object)
-                                      :body-data (:data (:data next-object))
-                                      )
-                    ]
+                                      :body-data (:data (:data next-object)))]
                 (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
 
 (defn make-paging-fn [access-token]

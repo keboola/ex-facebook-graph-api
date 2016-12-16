@@ -22,8 +22,19 @@
     (s/or ::fb-scalars ::fb-table-row-core)
     #(gen/fmap (partial apply into) (gen/tuple (s/gen ::fb-table-row-core) (s/gen ::fb-scalars)))))
 
-(s/def ::simple-object (s/map-of keyword? string? :max-count 4))
-(s/def ::simple-objects-array (s/coll-of ::simple-object :into []))
+(s/def ::simple-object (s/map-of keyword? ::table-value :max-count 5))
+(s/def ::complex-object (s/map-of keyword? (s/or :scalar ::table-value :object ::simple-object ) :min-count 1 :max-count 5))
+(s/def ::multi-complex-object (s/map-of keyword? (s/or :scalar ::table-value :object ::complex-object)))
+
+(s/def :metric/key1 string?)
+(s/def :metric/key2 string?)
+(s/def :metric/value ::table-value)
+(s/def ::key1-key2-value (s/keys :req-un [:metric/key1 :metric/key2 :metric/value]))
+(s/def ::end_time string?)
+
+(s/def :insights/value ::complex-object)
+(s/def ::insights (s/keys :req-un [:insights/value ::end_time]))
+
 (s/def ::nested-object (s/tuple keyword? (s/keys :req-un [::data])))
 (s/def ::fb-value (s/or :scalar (s/tuple keyword? ::table-value)
                         :nested ::nested-object
