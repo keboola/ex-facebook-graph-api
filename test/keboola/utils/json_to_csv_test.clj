@@ -4,10 +4,10 @@
             [clojure.test :refer :all]))
 
 (deftest test-replace-dash
-  (is (test-and-check `sut/replace-dash 50)))
+  (is (test-and-check `sut/replace-dash 20)))
 
 (deftest test-prepare-kw-map
-  (is (test-and-check `sut/prepare-kw-map 50)))
+  (is (test-and-check `sut/prepare-kw-map 20)))
 
 (deftest test-underscorize
-  (is (test-and-check `sut/underscorize 50)))
+  (is (test-and-check `sut/underscorize 20)))

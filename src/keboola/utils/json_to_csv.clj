@@ -22,7 +22,9 @@
   (apply hash-map (mapcat #(conj '() (replace-dash %) %) (keys m))))
 
 (s/fdef underscorize
-        :args (s/cat :coll (s/coll-of (s/map-of keyword? (s/or :string string? :int int?))))
+        :args (s/cat :coll (s/coll-of
+                            (s/map-of keyword? (s/or :string string? :int int?) :max-count 20)
+                            :max-count 20))
 :fn (fn [val]
               (every? (fn [m] (every? #(or
                                         (not (clojure.string/includes? (str %) "-"))
