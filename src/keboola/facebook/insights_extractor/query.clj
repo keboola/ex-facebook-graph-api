@@ -16,7 +16,7 @@
     (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
 (defn make-csv-write-chan [get-data-fn columns filepath]
-  (let [manifest {:incremental true :primary_key (get-primary-key columns)}]m
+  (let [manifest {:incremental true :primary_key (get-primary-key columns)}]
     (runtime/save-manifest filepath manifest)
     (async/thread
       (csv/write filepath columns (get-data-fn))
