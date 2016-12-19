@@ -8,11 +8,15 @@
             [clojure.core.async
              :as async
              :refer [>! <! >!! <!! go chan buffer close! thread
-                     alts! alts!! timeout]]
-            ))
+                     alts! alts!! timeout]]))
+
+(defn get-primary-key [table-columns]
+  (let [basic-pk ["id" "account_id"]
+        extended-pk ["key1" "key2" "end_time"]]
+    (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
 (defn make-csv-write-chan [get-data-fn columns filepath]
-  (let [manifest {:incremental true :primary_key ["id" "account_id"]}]
+  (let [manifest {:incremental true :primary_key (get-primary-key columns)}]m
     (runtime/save-manifest filepath manifest)
     (async/thread
       (csv/write filepath columns (get-data-fn))
