@@ -3,24 +3,6 @@
               [keboola.facebook.api.specs :as ds]
               ))
 
-(s/fdef unfold-nested-sequence
-        :args (s/cat
-               :data (s/coll-of (s/coll-of ::ds/fb-table-row :max-count 5)
-                                :min-count 1 :max-count 5))
-        :ret (s/coll-of ::ds/fb-table-row))
-(defn unfold-nested-sequence
-  "flatten sequence of sequences(of maps) into sequence of maps
-  returns lazy sequence of maps"
-  [data]
-  ((fn step [item other]
-     (if (some? item)
-         (lazy-seq
-          (if (map? item)
-            (cons item (step (first other) (rest other)))
-            (step (first item) (concat (rest item) other))
-            )))
-     ) (first data) (rest data)))
-
 (s/fdef get-columns
         :args (s/cat :item ::ds/fb-table-row
                      :memo (s/nilable map?))
@@ -78,6 +60,24 @@
 
 
 ;;;; NOT USED:
+(s/fdef unfold-nested-sequence
+        :args (s/cat
+               :data (s/coll-of (s/coll-of ::ds/fb-table-row :max-count 5)
+                                :min-count 1 :max-count 5))
+        :ret (s/coll-of ::ds/fb-table-row))
+(defn unfold-nested-sequence
+  "flatten sequence of sequences(of maps) into sequence of maps
+  returns lazy sequence of maps"
+  [data]
+  ((fn step [item other]
+     (if (some? item)
+         (lazy-seq
+          (if (map? item)
+            (cons item (step (first other) (rest other)))
+            (step (first item) (concat (rest item) other))
+            )))
+     ) (first data) (rest data)))
+
 (defn reduce-result-sequence
   "traverse response from nested-request
   and calls given reducer reduceFn(item, memo) for each
