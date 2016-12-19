@@ -2,11 +2,21 @@
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.specs :as ds]
               [keboola.docker.runtime :refer [log-strings]]
-              [keboola.http.client :as client]))
+              [keboola.http.client :as client]
+              [clojure.string :as string]
+              [clj-time.core :as t]
+              [clj-time.coerce]))
 
 (def graph-api-url "https://graph.facebook.com/")
 (s/def ::version string?)
 (def default-version "v2.8")
+
+(defn relative-days-timestamp [days]
+  (str (clj-time.coerce/to-long (t/plus (t/now) (t/days (Integer/parseInt days))))))
+
+(defn preparse-fields [fields-str]
+  (string/replace fields-str #"%%days:-?\d+%%"
+                  #(relative-days-timestamp (re-find #"-?\d+" %))))
 
 (s/fdef make-url
         :args (s/or :path-only (s/cat :path string? )
@@ -185,13 +195,14 @@
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
   [access-token {:keys [fields ids path]} & {:keys [ version]}]
-  (let [query-params {:access_token access-token :fields fields :ids ids}
+  (let [preparsed-fields (preparse-fields fields)
+        query-params {:access_token access-token :fields preparsed-fields :ids ids}
         full-url (make-url path version)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
         ]
-    (log-strings "calling" full-url)
+    (log-strings "calling" full-url "with" preparse-fields ids)
     (map
      #(hash-map
        :account-id (first %)
