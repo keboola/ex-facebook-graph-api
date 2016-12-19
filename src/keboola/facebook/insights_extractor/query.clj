@@ -30,15 +30,14 @@
                  :parent-type (-> % :keboola :parent-type))
          (filter #(= table-name (-> % :keboola :table-name)) data))))
 
-(defn run-nested-query [token out-dir {:keys [name path fields ids ids-title version]}]
+(defn run-nested-query [token out-dir {:keys [name path fields ids version]}]
   (let [nested-data (request/nested-request token
                                  {:fields fields
-                                  :ids ids
-                                  :ids-title ids-title}
+                                  :ids ids}
                                  :version version)
         lazy-data-seq (apply concat (mapcat #(:data %) nested-data))
         analyzed-structure (parser/analyze-seq lazy-data-seq 2000)
-        tables-columns (dissoc (:columns analyzed-structure) ids-title)
+        tables-columns (dissoc (:columns analyzed-structure) "page")
         write-channels (reduce-kv (fn [memo table-name columns]
                                     (conj memo
                                           (make-csv-write-chan
