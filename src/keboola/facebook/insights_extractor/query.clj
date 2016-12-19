@@ -36,7 +36,7 @@
                                   :ids ids
                                   :ids-title ids-title}
                                  :version version)
-        lazy-data-seq (parser/unfold-nested-sequence (mapcat #(:data %) nested-data))
+        lazy-data-seq (apply concat (mapcat #(:data %) nested-data))
         analyzed-structure (parser/analyze-seq lazy-data-seq 2000)
         tables-columns (dissoc (:columns analyzed-structure) ids-title)
         write-channels (reduce-kv (fn [memo table-name columns]
