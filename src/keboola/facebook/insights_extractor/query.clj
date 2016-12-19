@@ -30,14 +30,18 @@
                  :parent-type (-> % :keboola :parent-type))
          (filter #(= table-name (-> % :keboola :table-name)) data))))
 
+(defn filter-non-ids-only-columns [tables-columns-map]
+  (let [ids-only-columns #{:id :account-id}]
+    (into {} (filter #(not (every? ids-only-columns %)) (:columns tables-columns-map)))))
+
 (defn run-nested-query [token out-dir {:keys [name path fields ids version]}]
   (let [nested-data (request/nested-request token
                                  {:fields fields
                                   :ids ids}
                                  :version version)
         lazy-data-seq (apply concat (mapcat #(:data %) nested-data))
-        analyzed-structure (parser/analyze-seq lazy-data-seq 2000)
-        tables-columns (dissoc (:columns analyzed-structure) "page")
+        analyzed-structure (parser/analyze-seq lazy-data-seq 3000)
+        tables-columns (filter-non-ids-only-columns (:columns analyzed-structure))
         write-channels (reduce-kv (fn [memo table-name columns]
                                     (conj memo
                                           (make-csv-write-chan

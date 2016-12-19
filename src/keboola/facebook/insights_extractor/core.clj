@@ -49,5 +49,4 @@
     (cond
       (not-empty errors) (docker-runtime/error (string/join \newline errors))
       (empty? (:dataDir options)) (docker-runtime/error (usage summary)))
-    (prepare-and-run (:dataDir options))
-    ))
+    (prepare-and-run (:dataDir options))))
