@@ -11,7 +11,7 @@
                      alts! alts!! timeout]]))
 
 (defn get-primary-key [table-columns]
-  (let [basic-pk ["id" "account_id"]
+  (let [basic-pk ["id"]
         extended-pk ["key1" "key2" "end_time"]]
     (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
@@ -56,7 +56,7 @@
 
 (defn run-query [query credentials out-dir]
   (runtime/log-strings "Run query:" query)
-  (let [token (parse-token credentials)]
+  (let [token (parse-token credentials)
+        complete-query (assoc (:query query) :name (:name query) :version (:api-version query))]
     (case (:type query)
-      "nested-query" (run-nested-query token out-dir (assoc (:query query) :name (:name query) :version (:api-version query)))
-      )))
+      "nested-query" (run-nested-query token out-dir complete-query))))
