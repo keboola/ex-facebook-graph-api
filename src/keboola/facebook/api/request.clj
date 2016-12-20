@@ -202,7 +202,7 @@
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
         ]
-    (log-strings "calling" full-url "with" preparse-fields ids)
+    (log-strings "calling" full-url "with" preparsed-fields ids)
     (map
      #(hash-map
        :account-id (first %)
