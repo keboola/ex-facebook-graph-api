@@ -32,7 +32,7 @@
 
 (defn filter-non-ids-only-columns [tables-columns-map]
   (let [ids-only-columns #{:id :account-id}]
-    (into {} (filter #(not (every? ids-only-columns %)) (:columns tables-columns-map)))))
+    (into {} (filter #(not (every? ids-only-columns (second %))) tables-columns-map))))
 
 (defn run-nested-query [token out-dir {:keys [name path fields ids version]}]
   (let [nested-data (request/nested-request token
