@@ -35,5 +35,12 @@
 (defn underscorize [coll]
   (map #(rename-keys % (prepare-kw-map %)) coll))
 
+(defn sort-header [header]
+  (let [prefered-columns [:id :account-id :parent-type :parent-id]
+        used-prefered-columns (filter (set header) prefered-columns)
+        other-columns (filter #(not ((set used-prefered-columns) %)) header)]
+    (println other-columns)
+    (concat used-prefered-columns (sort other-columns))))
+
 (defn write [path header body]
-  (csv/spit-csv path {:header (map replace-dash header)} (underscorize body)))
+  (csv/spit-csv path {:header (map replace-dash (sort-header header))} (underscorize body)))
