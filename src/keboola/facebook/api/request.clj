@@ -5,14 +5,15 @@
               [keboola.http.client :as client]
               [clojure.string :as string]
               [clj-time.core :as t]
-              [clj-time.coerce]))
+              [clj-time.format :refer [formatter unparse]]
+              ))
 
 (def graph-api-url "https://graph.facebook.com/")
 (s/def ::version string?)
 (def default-version "v2.8")
 
 (defn relative-days-timestamp [days]
-  (str (clj-time.coerce/to-long (t/plus (t/now) (t/days (Integer/parseInt days))))))
+  (unparse (formatter "YYYY-MM-dd") (t/plus (t/now) (t/days (Integer/parseInt days)))))
 
 (defn preparse-fields [fields-str]
   (string/replace fields-str #"%%days:-?\d+%%"
