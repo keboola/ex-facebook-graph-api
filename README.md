@@ -63,8 +63,8 @@ In configuration under parameters there is an array of `queries`(see sample conf
 
 
  The most important parameter is `fields` - tells what is going to extract. so here are few hints:
- - you can specify additional params of a node with dot e.g to specify since and limit params of posts: `posts.limit(100).since(1477958400){message,likes,comments{comments}}`
- - you can specify date range using `since` or/and `until` that accepts unix timestamp values or relative values using placeholder **%%days:[number]%%** e.g. all posts posted in last 10 days `posts.since(%%days:-10%%){message,likes,comments}`
+ - you can specify additional params of a node with dot e.g to specify since and limit params of posts: `posts.limit(100).since(2016-12-24){message,likes,comments{comments}}`
+ - you can specify date range using `since` or/and `until` that accepts unix timestamp values(in seconds) or date in format **yyy-mm-dd** or relative values using placeholder **%%days:[number]%%** e.g. all posts posted in last 10 days `posts.since(%%days:-10%%){message,likes,comments}`
  - if an object(e.g comments) does not have nesting specified it will extract all its columns but once the nesting is specified e.g commens{likes} then one has to explicitely specify all its column in the nesting e.g. `comments{from,message,created_time,likes}`
  - for each row id is extracted autmatically and no need to be specified in the query
  - to extract all posts with its comments, subcomments,likes and sublikes the query would look like this:
