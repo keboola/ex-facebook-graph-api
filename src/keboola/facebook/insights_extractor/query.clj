@@ -34,22 +34,16 @@
   (let [ids-only-columns #{:id :account-id}]
     (into {} (filter #(not (every? ids-only-columns (second %))) tables-columns-map))))
 
-(defn run-nested-query [token out-dir {:keys [name path fields ids version]}]
-  (let [nested-data (request/nested-request token
-                                            {:fields fields
-                                             :path path
-                                             :ids ids}
-                                 :version version)
+(defn run-nested-query [token out-dir {:keys [name query version]}]
+  (let [nested-data (request/nested-request token query :version version)
         lazy-data-seq (apply concat nested-data)
         analyzed-structure (parser/analyze-seq lazy-data-seq 3000)
         tables-columns (filter-non-ids-only-columns (:columns analyzed-structure))
-        write-channels (reduce-kv (fn [memo table-name columns]
-                                    (conj memo
-                                          (make-csv-write-chan
-                                           (filter-table-data-fn lazy-data-seq table-name)
-                                           (conj columns :parent-id :parent-type :account-id)
-                                           (str out-dir name "_" table-name) ))
-                                    ) [] tables-columns)]
+        write-channels (map (fn [[table-name columns]]
+                              (make-csv-write-chan
+                               (filter-table-data-fn lazy-data-seq table-name)
+                               (conj columns :parent-id :parent-type :account-id)
+                               (str out-dir name "_" table-name))) tables-columns)]
     (runtime/log-strings "Writing output to csv files. Analyzed structure:" analyzed-structure)
     (mapv #(async/<!! %) write-channels)
     (runtime/log-strings "Run query " name " finished" )
@@ -62,6 +56,6 @@
 (defn run-query [query credentials out-dir]
   (runtime/log-strings "Run query:" query)
   (let [token (parse-token credentials)
-        complete-query (assoc (:query query) :name (:name query) :version (:api-version query))]
+        complete-query {:query (:query query) :name (:name query) :version (:api-version query)}]
     (case (:type query)
       "nested-query" (run-nested-query token out-dir complete-query))))
