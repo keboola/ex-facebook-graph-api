@@ -36,8 +36,9 @@
 
 (defn run-nested-query [token out-dir {:keys [name path fields ids version]}]
   (let [nested-data (request/nested-request token
-                                 {:fields fields
-                                  :ids ids}
+                                            {:fields fields
+                                             :path path
+                                             :ids ids}
                                  :version version)
         lazy-data-seq (apply concat (mapcat #(:data %) nested-data))
         analyzed-structure (parser/analyze-seq lazy-data-seq 3000)

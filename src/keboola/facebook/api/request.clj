@@ -212,7 +212,7 @@
                                 :parent-id (first %)
                                 :parent-type "page"
                                 :table-name "page"
-                                :body-data [(second %)]
+                                :body-data [(if (some? path) {(keyword path) (second %)} (second %))]
                                 :response (:body response)
                                 :api-fn next-page-api-fn}))
      (:body response))))
