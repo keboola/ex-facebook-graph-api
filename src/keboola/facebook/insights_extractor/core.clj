@@ -29,8 +29,7 @@
 (defn run [credentials parameters out-dir]
   (let [version (:api-version parameters)]
       (make-accounts-csv parameters out-dir)
-      (mapv #(query/run-query (assoc % :api-version version) credentials out-dir)
-            (:queries parameters))))
+      (doseq [query (:queries parameters)] (query/run-query (assoc query :api-version version) credentials out-dir))))
 
 (defn prepare-and-run [datadir]
   (let [ parameters (docker-config/parameters datadir)
