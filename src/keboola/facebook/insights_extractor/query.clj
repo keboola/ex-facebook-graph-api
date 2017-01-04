@@ -40,7 +40,7 @@
                                              :path path
                                              :ids ids}
                                  :version version)
-        lazy-data-seq (apply concat (mapcat #(:data %) nested-data))
+        lazy-data-seq (apply concat nested-data)
         analyzed-structure (parser/analyze-seq lazy-data-seq 3000)
         tables-columns (filter-non-ids-only-columns (:columns analyzed-structure))
         write-channels (reduce-kv (fn [memo table-name columns]

@@ -204,17 +204,16 @@
         next-page-api-fn (make-paging-fn access-token)
         ]
     (log-strings "calling" full-url "with" preparsed-fields ids)
-    (map
-     #(hash-map
-       :account-id (first %)
-       :data (page-and-collect {
-                                :account-id (name (first %))
-                                :parent-id (first %)
-                                :parent-type "page"
-                                :table-name "page"
-                                :body-data [(if (some? path) {(keyword path) (second %)} (second %))]
-                                :response (:body response)
-                                :api-fn next-page-api-fn}))
+    (mapcat
+     #(page-and-collect
+       {
+        :account-id (name (first %))
+        :parent-id (first %)
+        :parent-type "page"
+        :table-name "page"
+        :body-data [(if (not-empty path) {(keyword path) (second %)} (second %))]
+        :response (:body response)
+        :api-fn next-page-api-fn})
      (:body response))))
 
 (defn get-accounts [access-token & {:keys [version]}]
