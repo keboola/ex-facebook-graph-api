@@ -11,7 +11,7 @@
         all-rows (apply concat nested-data)
         write-channels (output/create-write-channels all-rows (str out-dir name))]
     (runtime/log-strings "Parsing started")
-    (mapv #(async/<!! %) write-channels)
+    (doseq [c (reverse write-channels)] (async/<!! c))
     (runtime/log-strings "Run query " name " finished" )))
 
 (defn parse-token [credentials]

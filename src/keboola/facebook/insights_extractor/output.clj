@@ -44,5 +44,5 @@
   (let [sample (take 3000 rows)
         tables-names (set (map #(get-table-name %) sample))]
     (runtime/log-strings "found tables" tables-names)
-    (map #(async/thread (write-one-table % (filter-table-rows % rows) file-path-prefix) true)
+    (map #(async/thread (write-one-table % (filter-table-rows % rows) file-path-prefix))
          tables-names)))
