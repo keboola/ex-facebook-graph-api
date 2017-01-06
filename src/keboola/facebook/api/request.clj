@@ -208,7 +208,7 @@
      #(page-and-collect
        {
         :account-id (name (first %))
-        :parent-id (first %)
+        :parent-id (name (first %))
         :parent-type "page"
         :table-name "page"
         :body-data [(if (not-empty path) {(keyword path) (second %)} (second %))]
