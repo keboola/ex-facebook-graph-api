@@ -31,7 +31,7 @@
   (let [version (:api-version parameters)]
       (make-accounts-csv parameters out-dir)
       (doseq [query (:queries parameters)] (query/run-query (assoc query :api-version version) credentials out-dir)))
-  (log-strings "Finished, total facebook api requests made:" @fb-requests-count))
+  (log-strings "Finished, total count of requests to facebook api:" @fb-requests-count))
 
 (defn prepare-and-run [datadir]
   (let [ parameters (docker-config/parameters datadir)
