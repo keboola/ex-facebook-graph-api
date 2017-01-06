@@ -1,7 +1,8 @@
 (ns keboola.facebook.insights-extractor.output
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
-            [clojure.core.async :as async]))
+            [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]
+            [clojure.java.io :as io]))
 
 (defn sort-columns [columns]
   (let [prefered-columns [:id :account-id :parent-type :parent-id :name :key1 :key2 :value :period :end_time :title]
@@ -46,3 +47,88 @@
     (runtime/log-strings "found tables" tables-names)
     (map #(async/thread (write-one-table % (filter-table-rows % rows) file-path-prefix))
          tables-names)))
+
+(defn write-manifest [file-path columns is-write?]
+  (if is-write?
+    (let [manifest {:incremental true :primary_key (get-primary-key columns)}]
+      (runtime/save-manifest file-path manifest))))
+
+(defn prepare-header [rows]
+  (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
+        all-columns (conj columns :parent-id :parent-type :account-id)]
+    (sort-columns all-columns)))
+
+(defn flush-buffer [csv-file file-path memo]
+  ;(println "FLUSHING" file-path (count (:buffer memo)) (:cnt memo))
+  (let [first-write? (:first-write? memo)
+        header (if first-write? (prepare-header (:buffer memo)) (:header memo))]
+      (write-manifest file-path header first-write?)
+      (csv/write-to-file csv-file header (:buffer memo) first-write?)
+      header))
+
+(defn add-id-coloumns [row]
+  (assoc row
+         :account-id (-> row :keboola :account-id)
+         :parent-id (-> row :keboola :parent-id)
+         :parent-type (-> row :keboola :parent-type)))
+
+(defn process-row [row csv-file file-path memo]
+  (if (or (= (count (:buffer memo)) 300))
+    (let [header (flush-buffer csv-file file-path (update memo :buffer #(conj % row)))]
+      {:cnt (inc (:cnt memo)) :header header :buffer '() :first-write? false})
+    ;else part
+    {:cnt (inc (:cnt memo))
+     :header (:header memo)
+     :buffer (conj (:buffer memo) row)
+     :first-write? (:first-write? memo)}))
+
+(defn create-write-thread [table-name input-ch terminate-ch file-path-prefix]
+  (async/thread
+    (let [file-path (str file-path-prefix "_" table-name)]
+      (with-open [out-file (io/writer file-path)]
+          (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
+            (let [[row ch] (alts!! [input-ch terminate-ch])]
+              (if (identical? ch input-ch)
+                (if (some? row)
+                  (recur (process-row row out-file file-path memo))
+                  ;; else input-ch has closed -> don't call recur,
+                  (do
+                    (flush-buffer out-file file-path (update memo :buffer #(conj % row)))
+                    (runtime/log-strings "Written" (:cnt memo) (count (:buffer memo)) "rows to table " table-name))
+                  ;; thread terminates
+                  )
+                ;; else we received sth. from terminate-ch,
+                ;; or terminate-ch has closed -> don't call recur,
+                (do
+                  ;(println "TERMINATE-CH" (count (:buffer memo)))
+                  (if (not-empty (:buffer memo))
+                    (flush-buffer out-file file-path memo)))
+                ;; thread terminates
+                )))))
+    ; return true as succesfull finish
+    true))
+(defn create-tables-map [tables-names value-fn]
+  (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
+
+(defn close-table-channels [table-map]
+  (doseq [[_ c] table-map]
+    (close! c)))
+
+(defn write-rows [rows file-path-prefix]
+  (let [sample (take 2000 rows)
+        tables-names (set (map #(get-table-name %) sample))
+        terminate-chans (create-tables-map tables-names (fn [_] (chan)))
+        tables-chans (create-tables-map tables-names (fn [_] (chan)))
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) (terminate-chans %) file-path-prefix))]
+    (runtime/log-strings "found tables" tables-names)
+    (dorun (map-indexed
+            (fn [idx row]
+              (let [table-name (get-table-name row)
+                    output-chan (tables-chans table-name)]
+                (>!! output-chan (add-id-coloumns row))
+                (if (= 0 (mod idx 5000)) (runtime/log-strings "Processed" idx "rows"))
+                )) rows))
+    (close-table-channels tables-chans)
+    (close-table-channels terminate-chans)
+    (every? true? (map (fn [[_ c]] async/<!! c) threads-chans))
+    ))

@@ -9,14 +9,11 @@
 (defn run-nested-query [token out-dir {:keys [name query version]}]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)
-        write-channels (output/create-write-channels all-rows (str out-dir name))]
-    (runtime/log-strings "Parsing started")
-    (doseq [c (reverse write-channels)] (async/<!! c))
-    (runtime/log-strings "Run query " name " finished" )))
+        result (output/write-rows all-rows (str out-dir name))]
+    (runtime/log-strings "Run query " name " finished" result)))
 
 (defn parse-token [credentials]
   (:token credentials))
-
 
 (defn run-query [query credentials out-dir]
   (runtime/log-strings "Run query:" query)
