@@ -41,6 +41,7 @@
 
 
 (defn write-to-file [file header rows prepend-header]
-  (->> (underscorize rows)
-       (csv/vectorize {:header (map replace-dash header) :prepend-header prepend-header})
-       (cd-csv/write-csv file)))
+  (let [data
+        (->> (underscorize rows)
+             (csv/vectorize {:header (map replace-dash header) :prepend-header prepend-header}))]
+    (cd-csv/write-csv file data :quote? (fn [_] true))))
