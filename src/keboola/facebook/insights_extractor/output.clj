@@ -122,7 +122,8 @@
   (let [sample (take 2000 rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))]
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))
+        thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
     (dorun (map-indexed
             (fn [idx row]
@@ -132,5 +133,5 @@
                 (if (= 0 (mod (inc idx) 5000)) (runtime/log-strings "Processed" idx "objects"))
                 )) rows))
     (close-table-channels tables-chans)
-    (every? true? (map (fn [[_ c]] async/<!! c) threads-chans))
-    ))
+    (while (async/<!! (async/merge thread-chans-vec)))
+    true))

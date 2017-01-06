@@ -10,7 +10,7 @@
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)
         result (output/write-rows all-rows (str out-dir name))]
-    (runtime/log-strings "Run query " name " finished" result)))
+    (runtime/log-strings "Run query" name " finished" result)))
 
 (defn parse-token [credentials]
   (:token credentials))
