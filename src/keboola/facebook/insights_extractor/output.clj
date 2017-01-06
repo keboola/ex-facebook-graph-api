@@ -58,13 +58,21 @@
         all-columns (conj columns :parent-id :parent-type :account-id)]
     (sort-columns all-columns)))
 
-(defn flush-buffer [csv-file file-path memo]
-  ;(println "FLUSHING" file-path (count (:buffer memo)) (:cnt memo))
+(defn flush-buffer [csv-file file-path table-name memo]
   (let [first-write? (:first-write? memo)
-        header (if first-write? (prepare-header (:buffer memo)) (:header memo))]
-      (write-manifest file-path header first-write?)
-      (csv/write-to-file csv-file header (:buffer memo) first-write?)
-      header))
+        header (if first-write? (prepare-header (:buffer memo)) (:header memo))
+        has-data-columns (not-empty (disj (set header) :id :account-id :parent-type :parent-id))]
+    (if has-data-columns
+      (do
+        (write-manifest file-path header first-write?)
+        (csv/write-to-file csv-file header (:buffer memo) first-write?)
+        (if (= (mod 5000 (:cnt memo)) 0) (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
+        ;return header
+        header)
+      ; else has only ids columns
+      (do
+        (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
+        nil))))
 
 (defn add-id-coloumns [row]
   (assoc row
@@ -72,15 +80,19 @@
          :parent-id (-> row :keboola :parent-id)
          :parent-type (-> row :keboola :parent-type)))
 
-(defn process-row [row csv-file file-path memo]
+(defn process-row [row csv-file file-path table-name memo]
   (if (or (= (count (:buffer memo)) 300))
-    (let [header (flush-buffer csv-file file-path (update memo :buffer #(conj % row)))]
+    (let [header (flush-buffer csv-file file-path table-name (update memo :buffer #(conj % row)))]
       {:cnt (inc (:cnt memo)) :header header :buffer '() :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
      :header (:header memo)
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
+
+(defn delete-file-if-empty [file-path]
+  (if (= 0 (.length (io/file file-path)))
+    (io/delete-file file-path)))
 
 (defn create-write-thread [table-name input-ch file-path-prefix]
   (async/thread
@@ -89,13 +101,13 @@
           (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
             (let [row (<!! input-ch)]
               (if (some? row)
-                (recur (process-row row out-file file-path memo))
+                (recur (process-row row out-file file-path table-name memo))
                 ;; else input-ch has closed -> don't call recur,
-                (do
-                  (flush-buffer out-file file-path (update memo :buffer #(conj % row)))
-                  (runtime/log-strings "Written" (:cnt memo) (count (:buffer memo)) "rows to table " table-name))
+                (if (some? (flush-buffer out-file file-path table-name memo))
+                  (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))
                 ;; thread terminates
-                )))))
+                ))))
+      (delete-file-if-empty file-path))
     ; return true as succesfull finish of thread
     true))
 
@@ -117,7 +129,7 @@
               (let [table-name (get-table-name row)
                     output-chan (tables-chans table-name)]
                 (>!! output-chan (add-id-coloumns row))
-                (if (= 0 (mod idx 5000)) (runtime/log-strings "Processed" idx "rows"))
+                (if (= 0 (mod (inc idx) 5000)) (runtime/log-strings "Processed" idx "objects"))
                 )) rows))
     (close-table-channels tables-chans)
     (every? true? (map (fn [[_ c]] async/<!! c) threads-chans))
