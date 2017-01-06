@@ -59,7 +59,7 @@
                                      (conj m
                                            {:name (name k)
                                             :data v
-                                            :parent-id (:id row)
+                                            :parent-id (or (:id row) (:parent-id params))
                                             :parent-type (str (:parent-type params) "_" (name k))
                                             }) m))
                                  [] row)]
