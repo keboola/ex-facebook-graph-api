@@ -1,5 +1,6 @@
 (ns keboola.utils.json-to-csv
   (:require [semantic-csv.core :as csv]
+            [clojure.data.csv :as cd-csv]
             [clojure.set :refer [rename-keys]]
             [clojure.spec :as s]
             [clojure.string]
@@ -37,3 +38,9 @@
 
 (defn write [path header body]
   (csv/spit-csv path {:header (map replace-dash header)} (underscorize body)))
+
+
+(defn write-to-file [file header rows prepend-header]
+  (->> (underscorize rows)
+       (csv/vectorize {:header (map replace-dash header) :prepend-header prepend-header})
+       (cd-csv/write-csv file)))

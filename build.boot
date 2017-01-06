@@ -8,11 +8,12 @@
                  [clojure-csv/clojure-csv "2.0.1"]
                  [org.clojure/tools.cli "0.3.5"]
                  [semantic-csv "0.1.0"]
+                 [org.clojure/data.csv "0.1.3"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "0.2.395"]
                  [adzerk/boot-test "1.1.2" :scope "test"]
-                 [clj-time "0.12.2"]
-                 ])
+                 [clj-time "0.12.2"]])
+
 (require '[keboola.facebook.insights-extractor.core])
 (require '[adzerk.boot-test :refer :all])
 (deftask run-insights
