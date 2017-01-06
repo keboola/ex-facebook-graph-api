@@ -2,11 +2,12 @@
   (:gen-class)
   (:require [clojure.tools.cli :refer [parse-opts]]
             [keboola.docker.config :as docker-config]
+            [keboola.http.client :refer [fb-requests-count]]
             [keboola.docker.runtime :as docker-runtime]
             [keboola.facebook.insights-extractor.query :as query]
             [keboola.facebook.insights-extractor.sync-actions :as sync-actions]
             [keboola.utils.json-to-csv :as csv]
-            [keboola.docker.runtime :refer [log]]
+            [keboola.docker.runtime :refer [log log-strings]]
             [clojure.string :as string]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
@@ -29,7 +30,8 @@
 (defn run [credentials parameters out-dir]
   (let [version (:api-version parameters)]
       (make-accounts-csv parameters out-dir)
-      (doseq [query (:queries parameters)] (query/run-query (assoc query :api-version version) credentials out-dir))))
+      (doseq [query (:queries parameters)] (query/run-query (assoc query :api-version version) credentials out-dir)))
+  (log-strings "Finished, total facebook api requests made:" @fb-requests-count))
 
 (defn prepare-and-run [datadir]
   (let [ parameters (docker-config/parameters datadir)
