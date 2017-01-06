@@ -82,31 +82,23 @@
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
 
-(defn create-write-thread [table-name input-ch terminate-ch file-path-prefix]
+(defn create-write-thread [table-name input-ch file-path-prefix]
   (async/thread
     (let [file-path (str file-path-prefix "_" table-name)]
       (with-open [out-file (io/writer file-path)]
           (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
-            (let [[row ch] (alts!! [input-ch terminate-ch])]
-              (if (identical? ch input-ch)
-                (if (some? row)
-                  (recur (process-row row out-file file-path memo))
-                  ;; else input-ch has closed -> don't call recur,
-                  (do
-                    (flush-buffer out-file file-path (update memo :buffer #(conj % row)))
-                    (runtime/log-strings "Written" (:cnt memo) (count (:buffer memo)) "rows to table " table-name))
-                  ;; thread terminates
-                  )
-                ;; else we received sth. from terminate-ch,
-                ;; or terminate-ch has closed -> don't call recur,
+            (let [row (<!! input-ch)]
+              (if (some? row)
+                (recur (process-row row out-file file-path memo))
+                ;; else input-ch has closed -> don't call recur,
                 (do
-                  ;(println "TERMINATE-CH" (count (:buffer memo)))
-                  (if (not-empty (:buffer memo))
-                    (flush-buffer out-file file-path memo)))
+                  (flush-buffer out-file file-path (update memo :buffer #(conj % row)))
+                  (runtime/log-strings "Written" (:cnt memo) (count (:buffer memo)) "rows to table " table-name))
                 ;; thread terminates
                 )))))
-    ; return true as succesfull finish
+    ; return true as succesfull finish of thread
     true))
+
 (defn create-tables-map [tables-names value-fn]
   (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
 
@@ -117,9 +109,8 @@
 (defn write-rows [rows file-path-prefix]
   (let [sample (take 2000 rows)
         tables-names (set (map #(get-table-name %) sample))
-        terminate-chans (create-tables-map tables-names (fn [_] (chan)))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) (terminate-chans %) file-path-prefix))]
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))]
     (runtime/log-strings "found tables" tables-names)
     (dorun (map-indexed
             (fn [idx row]
@@ -129,6 +120,5 @@
                 (if (= 0 (mod idx 5000)) (runtime/log-strings "Processed" idx "rows"))
                 )) rows))
     (close-table-channels tables-chans)
-    (close-table-channels terminate-chans)
     (every? true? (map (fn [[_ c]] async/<!! c) threads-chans))
     ))
