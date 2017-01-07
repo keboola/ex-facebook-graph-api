@@ -220,26 +220,3 @@
   (get-in (client/GET (make-url "me/accounts" version)
                       :query-params {:access_token access-token} :as :json)
           [:body :data]))
-
-;;;; DEPRECATED
-(defn get-response-data [response]
-  (get-in response [:data])
-  )
-
-(defn- collect-result [response api-fn]
-  (lazy-seq
-   (if (get-next-page-url response)
-     (concat (get-response-data response)
-             (collect-result
-              (:body (api-fn (get-next-page-url response)))
-              api-fn
-              )))))
-
-
-(defn- get-request [access-token path & {:keys [query version]}]
-  (let [query-params (assoc query :access_token access-token)
-        request-fn (fn [url] (client/GET url :query-params query-params :as :json))]
-    (collect-result
-     (request-fn (make-url path :version version))
-     request-fn
-     )))
