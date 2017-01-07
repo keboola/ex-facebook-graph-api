@@ -4,6 +4,9 @@
             [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]
             [clojure.java.io :as io]))
 
+(def chan-buffer-size 300)
+(def sample-rows-count 3000)
+
 (defn delete-file-if-empty [file-path]
   (if (= 0 (.length (io/file file-path)))
     (io/delete-file file-path)))
@@ -21,6 +24,12 @@
 
 (defn get-table-name [row]
   (-> row :keboola :table-name))
+
+(defn add-id-coloumns [row]
+  (assoc row
+         :account-id (-> row :keboola :account-id)
+         :parent-id (-> row :keboola :parent-id)
+         :parent-type (-> row :keboola :parent-type)))
 
 (defn write-manifest [file-path columns is-write?]
   (if is-write?
@@ -40,7 +49,8 @@
       (do
         (write-manifest file-path header first-write?)
         (csv/write-to-file csv-file header (:buffer memo) first-write?)
-        (if (= (mod 5000 (:cnt memo)) 0) (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
+        (if (= (mod (:cnt memo) (* chan-buffer-size 3)) 0)
+          (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
         ;return header
         header)
       ; else has only ids columns
@@ -48,22 +58,15 @@
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
 
-(defn add-id-coloumns [row]
-  (assoc row
-         :account-id (-> row :keboola :account-id)
-         :parent-id (-> row :keboola :parent-id)
-         :parent-type (-> row :keboola :parent-type)))
-
 (defn process-row [row csv-file file-path table-name memo]
-  (if (or (= (count (:buffer memo)) 300))
-    (let [header (flush-buffer csv-file file-path table-name (update memo :buffer #(conj % row)))]
-      {:cnt (inc (:cnt memo)) :header header :buffer '() :first-write? false})
+  (if (= (count (:buffer memo)) chan-buffer-size)
+    (let [header (flush-buffer csv-file file-path table-name memo)]
+      {:cnt (inc (:cnt memo)) :header header :buffer (list row) :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
      :header (:header memo)
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
-
 
 (defn create-write-thread [table-name input-ch file-path-prefix]
   (async/thread
@@ -90,7 +93,7 @@
     (close! c)))
 
 (defn write-rows [rows file-path-prefix]
-  (let [sample (take 2000 rows)
+  (let [sample (take sample-rows-count rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
         threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))

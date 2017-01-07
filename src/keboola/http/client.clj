@@ -16,7 +16,7 @@
   (if (str/starts-with? url "https://graph.facebook.com")
     (do
       (swap! fb-requests-count inc)
-      (if (= 0 (mod @fb-requests-count 50)) (runtime/log-strings "Made" @fb-requests-count "requests to facebook api so far.")))))
+      (if (= 0 (mod @fb-requests-count 500)) (runtime/log-strings "Made" @fb-requests-count "requests to facebook api so far.")))))
 
 (defn- make-request [method url & rest]
   (check-fb-requests url)
