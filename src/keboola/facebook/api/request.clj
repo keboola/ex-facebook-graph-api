@@ -1,23 +1,12 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec :as s]
-              [keboola.facebook.api.specs :as ds]
+              [keboola.facebook.api.parser :as parser]
               [keboola.docker.runtime :refer [log-strings]]
               [keboola.http.client :as client]
-              [clojure.string :as string]
-              [clj-time.core :as t]
-              [clj-time.format :refer [formatter unparse]]
-              ))
+              [clojure.string :as string]))
 
 (def graph-api-url "https://graph.facebook.com/")
-(s/def ::version string?)
 (def default-version "v2.8")
-
-(defn relative-days-timestamp [days]
-  (unparse (formatter "YYYY-MM-dd") (t/plus (t/now) (t/days (Integer/parseInt days)))))
-
-(defn preparse-fields [fields-str]
-  (string/replace fields-str #"%%days:-?\d+%%"
-                  #(relative-days-timestamp (re-find #"-?\d+" %))))
 
 (s/fdef make-url
         :args (s/or :path-only (s/cat :path string? )
@@ -31,117 +20,17 @@
   ([path version]
    (str graph-api-url version "/" path)))
 
-(s/fdef nested-object?
-        :args (s/cat :object (s/or :nested (s/keys :req-un [::ds/data])
-                                   :simple ::ds/fb-object))
-        :ret boolean?
-        :fn (fn [val]
-              (if (= :simple (-> val :args :object first))
-                (= false (-> val :ret))
-                (= true (-> val :ret) ))))
-(defn nested-object?
-  "Returns true if objet is map and contains :data keyword"
-  [object]
-  (and (map? object) (contains? object :data)))
-
-(s/fdef get-nested-objects
-        :args (s/cat :body-data ::ds/data
-                     :params ::ds/keboola)
-        :ret (s/coll-of map? :into []))
-(defn get-nested-objects
-  "Traverse body-data array and take out nested-object like structures.
-  Return array of objects with keys :name :data :parent-id :parent-type "
-  [body-data params]
-  (reduce
-   (fn [memo, row]
-     (if-let [objects (reduce-kv (fn [m k v]
-                                   (if (nested-object? v)
-                                     (conj m
-                                           {:name (name k)
-                                            :data v
-                                            :parent-id (or (:id row) (:parent-id params))
-                                            :parent-type (str (:parent-type params) "_" (name k))
-                                            }) m))
-                                 [] row)]
-       (concat memo objects)
-       memo))
-   [] body-data))
-
-(s/fdef flatten-value-object
-        :args (s/cat :key1 string?
-                     :object-value (s/or :scalar ::ds/table-value :object ::ds/simple-object))
-        :ret (s/* ::ds/key1-key2-value))
-
-(defn flatten-value-object
-  "flattens object values and prepends and prepend key1"
-  [key1 object-value]
-  (cond
-    (map? object-value) (map (fn [[key2 val]] {:key1 key1 :key2 (name key2) :value val})
-                             object-value)
-    :else (list {:key1 key1 :key2 "" :value object-value})))
-
-(s/fdef flatten-array-value
-        :args (s/cat :item (s/or :scalar ::ds/table-value :object ::ds/complex-object)
-                     :end_time ::ds/end_time)
-        :ret (s/* (s/merge (s/keys :req-un [::ds/end_time]) ::ds/key1-key2-value)))
-
-(defn flatten-array-value [item end_time]
-  (map
-   #(assoc % :end_time end_time)
-   (cond
-     (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
-     :else (list {:key1 "" :key2 "" :value item}))))
-
-(s/fdef flatten-array
-        :args (s/cat :array (s/coll-of ::ds/insights))
-        :ret (s/* (s/map-of keyword? ::ds/table-value)))
-(defn flatten-array
-  "flattens array of object with same structure prefixing its keys with array-name
-  returns list of key-value pairs"
-  [array]
-  (mapcat #(flatten-array-value (:value %) (:end_time %)) array))
-
-
-(s/fdef filter-scalars
-        :args (s/cat :row (s/map-of keyword? (s/or :scalar ::ds/table-value
-                                                   :object map?
-                                                   :seq sequential?)))
-        :ret (s/map-of keyword? ::ds/table-value))
-(defn filter-scalars [row]
-  (into {} (filter (fn [[k v]]
-                     (and (-> v map? not) (-> v sequential? not))
-                     ) row)))
-
-(s/fdef filter-flatten-objects
-        :args (s/cat :row ::ds/complex-object)
-        :ret (s/map-of keyword? ::ds/table-value))
-(defn filter-flatten-objects
-  [row]
-  (let [simple-objects (filter (fn [[k v]] (and (-> v map?) (-> v nested-object? not))) row)]
-    (apply hash-map
-           (mapcat (fn [[object-name object]]
-                     (mapcat (fn [[k v]]
-                               (list (keyword (str (name object-name) "_" (name k))) v))
-                             object))
-                   simple-objects))))
-
-#_(s/fdef filter-values
-        :args (s/cat :row ::ds/fb-object
-                     :params ::ds/keboola
-                     :account-id string?)
-        :fn #(-> % :ret (contains? :keboola))
-        :ret (s/map-of keyword? (s/or :value ::ds/table-value :object map?)))
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
   return list of objects with enhanced info(:keboola keyword) and all scalar values"
   [row params account-id]
-  (let [scalars (filter-scalars row)
-        objects-flatten (filter-flatten-objects row )
+  (let [scalars (parser/filter-scalars row)
+        objects-flatten (parser/filter-flatten-objects row )
         all-simple-scalars (merge {:account-id account-id :keboola params} scalars objects-flatten)
         arrays (filter (fn [[k v]] (vector? v)) row)
         merged-arrays (map
                        #(merge all-simple-scalars %) (mapcat (fn [[_ array]]
-                                                               (flatten-array array)) arrays))]
+                                                               (parser/flatten-array array)) arrays))]
     (if (empty? merged-arrays)
       (list all-simple-scalars)
       merged-arrays)))
@@ -177,7 +66,7 @@
                     new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
 
                     next-page-data (get-next-page-data (:response params) params)
-                    nested-objects (concat (get-nested-objects this-object-data params) next-page-data)
+                    nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
                     next-object (first all-objects)
                     new-params (assoc params
@@ -189,14 +78,13 @@
                 (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
 
 (defn make-paging-fn [access-token]
-  (fn [url] (client/GET url :query-params {:access_token access-token} :as :json))
-  )
+  (fn [url] (client/GET url :query-params {:access_token access-token} :as :json)))
 
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
   [access-token {:keys [fields ids path limit]} & {:keys [ version]}]
-  (let [preparsed-fields (preparse-fields fields)
+  (let [preparsed-fields (parser/preparse-fields fields)
         query-params {:access_token access-token :fields preparsed-fields :ids ids :limit limit}
         full-url (make-url path version)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
