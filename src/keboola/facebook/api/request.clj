@@ -83,15 +83,17 @@
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
-  [access-token {:keys [fields ids path limit]} & {:keys [ version]}]
+  [access-token {:keys [fields ids path limit since until]} & {:keys [ version]}]
   (let [preparsed-fields (parser/preparse-fields fields)
-        query-params {:access_token access-token :fields preparsed-fields :ids ids :limit limit}
+        preparsed-since (parser/preparse-fields (or since ""))
+        preparsed-until (parser/preparse-fields (or until ""))
+        query-params {:access_token access-token :fields preparsed-fields :ids ids :limit limit :since preparsed-since :until preparsed-until}
         full-url (make-url path version)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
         response (request-fn full-url)
         next-page-api-fn (make-paging-fn access-token)
         ]
-    (log-strings "calling" full-url "with" preparsed-fields ids)
+    (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
     (mapcat
      #(page-and-collect
        {
