@@ -96,13 +96,9 @@
         threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
-    (dorun (map-indexed
-            (fn [idx row]
-              (let [table-name (get-table-name row)
-                    output-chan (tables-chans table-name)]
-                (>!! output-chan (add-id-coloumns row))
-                (if (= 0 (mod (inc idx) 5000)) (runtime/log-strings "Processed" idx "objects"))
-                )) rows))
+    (doseq [row rows]
+           (let [table-name (get-table-name row)
+                 output-chan (tables-chans table-name)]
+             (>!! output-chan (add-id-coloumns row))))
     (close-table-channels tables-chans)
-    (while (async/<!! (async/merge thread-chans-vec)))
-    true))
+    (while (async/<!! (async/merge thread-chans-vec)))))
