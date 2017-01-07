@@ -72,7 +72,7 @@ In configuration under parameters there is an array of `queries`(see sample conf
  {
    "fields": "posts{message,story,created_time,likes,comments{from,message,created_time,comments,likes}}",
    "path": "",
-   "ids": "some_page_id"
+   "ids": "<some_page_id>"
 
  }
  ```
@@ -83,7 +83,7 @@ In configuration under parameters there is an array of `queries`(see sample conf
   "storage": {},
   "parameters": {
     "accounts": {
-      "<pagId1>": {
+      "<pageId1>": {
         "id": "<pagId1>",
         "name": "my fancy page",
         "category": "entertainment"
