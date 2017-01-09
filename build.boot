@@ -12,6 +12,7 @@
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "0.2.395"]
                  [adzerk/boot-test "1.1.2" :scope "test"]
+                 [slingshot "0.12.2"]
                  [clj-time "0.12.2"]])
 
 (require '[keboola.facebook.insights-extractor.core])

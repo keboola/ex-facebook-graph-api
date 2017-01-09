@@ -11,9 +11,14 @@
     (apply println error-msg))
   )
 
-(defn error [error-msg]
+(defn user-error [error-msg]
   (log-error error-msg)
   (exit 1)
+  )
+
+(defn app-error [error-msg]
+  (log-error error-msg)
+  (exit 2)
   )
 
 (defn log-strings [& strings]
@@ -22,6 +27,10 @@
 (defn log [what]
   (println what)
   )
+
+(defn log-error-and-exit [what]
+  (log-error what)
+  (exit 0))
 
 (defn save-manifest [csvfile-path body]
   (let [manifest (select-keys body [:destination :columns :incremental :primary_key :delimiter :enclosure])

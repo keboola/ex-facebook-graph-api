@@ -3,11 +3,12 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [keboola.docker.config :as docker-config]
             [keboola.http.client :refer [fb-requests-count]]
-            [keboola.docker.runtime :as docker-runtime]
+            [keboola.docker.runtime :as docker-runtime :refer [log-error-and-exit user-error app-error]]
             [keboola.facebook.insights-extractor.query :as query]
             [keboola.facebook.insights-extractor.sync-actions :as sync-actions]
             [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :refer [log log-strings]]
+            [slingshot.slingshot :refer [try+ throw+]]
             [clojure.string :as string]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
@@ -18,6 +19,17 @@
         "Options:"
         options-summary]
        (string/join \newline)))
+
+(defn treat [fn-to-treat]
+  (try+
+   (fn-to-treat)
+   (catch #(<= 400 (:status %) 500) e
+     (let [msg (:body e)]
+       (if (.contains msg "User request limit reached")
+         (log-error-and-exit "REQUEST LIMIT REACHED - the extracted data will be uploaded to storage. Find the the most recent row extracted via created_time and use since query parameter to extract the rest data incrementally." msg)
+         (user-error (str "Facebook api error:" msg)))))
+   (catch Object e
+     (app-error (str "unexpected error:" e)))))
 
 (defn make-accounts-csv [parameters out-dir]
   (let [filepath (str out-dir "accounts")
@@ -39,15 +51,15 @@
          action (:action config)
          credentials (docker-config/user-credentials datadir)]
     (cond
-      (empty? credentials) (docker-runtime/error "Missing facebook credentials")
-      (empty? (:token credentials)) (docker-runtime/error "Missing facebook token"))
+      (empty? credentials) (docker-runtime/user-error "Missing facebook credentials")
+      (empty? (:token credentials)) (docker-runtime/user-error "Missing facebook token"))
     (case action
       "accounts" (sync-actions/accounts credentials config)
-      (run credentials parameters (docker-config/out-dir-path datadir)))))
+      (treat  #(run credentials parameters (docker-config/out-dir-path datadir))))))
 
 (defn -main [& args]
   (let [{:keys [options summary errors] :as parsed-args} (parse-opts args cli-options)]
     (cond
-      (not-empty errors) (docker-runtime/error (string/join \newline errors))
-      (empty? (:dataDir options)) (docker-runtime/error (usage summary)))
+      (not-empty errors) (docker-runtime/user-error (string/join \newline errors))
+      (empty? (:dataDir options)) (docker-runtime/user-error (usage summary)))
     (prepare-and-run (:dataDir options))))
