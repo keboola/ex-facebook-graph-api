@@ -23,10 +23,10 @@
 (defn treat [fn-to-treat]
   (try+
    (fn-to-treat)
-   (catch #(<= 400 (:status %) 500) e
+   (catch #(<= 400 (:status %) 550) e
      (let [msg (:body e)]
        (if (.contains msg "User request limit reached")
-         (log-error-and-exit "REQUEST LIMIT REACHED - the extracted data will be uploaded to storage. Find the the most recent row extracted via created_time and use since query parameter to extract the rest data incrementally." msg)
+         (log-error-and-exit (str "REQUEST LIMIT REACHED. Up to now extracted data will be uploaded to storage." msg))
          (user-error (str "Facebook api error:" msg)))))
    (catch Object e
      (app-error (str "unexpected error:" e)))))
