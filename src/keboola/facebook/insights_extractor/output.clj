@@ -1,6 +1,7 @@
 (ns keboola.facebook.insights-extractor.output
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
+            [slingshot.slingshot :refer [try+ throw+]]
             [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]
             [clojure.java.io :as io]))
 
@@ -88,9 +89,11 @@
 (defn create-tables-map [tables-names value-fn]
   (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
 
-(defn close-table-channels [table-map]
+(defn close-channels [table-map thread-chans-vec]
   (doseq [[_ c] table-map]
-    (close! c)))
+    (close! c))
+  (while (async/<!! (async/merge thread-chans-vec))))
+
 
 (defn write-rows [rows file-path-prefix]
   (let [sample (take sample-rows-count rows)
@@ -99,9 +102,12 @@
         threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
-    (doseq [row rows]
-           (let [table-name (get-table-name row)
-                 output-chan (tables-chans table-name)]
-             (>!! output-chan (add-id-coloumns row))))
-    (close-table-channels tables-chans)
-    (while (async/<!! (async/merge thread-chans-vec)))))
+    (try+
+     (doseq [row rows]
+       (let [table-name (get-table-name row)
+             output-chan (tables-chans table-name)]
+         (>!! output-chan (add-id-coloumns row))))
+     (catch Object _
+       (close-channels tables-chans thread-chans-vec)
+       (throw+)))
+    (close-channels tables-chans thread-chans-vec)))
