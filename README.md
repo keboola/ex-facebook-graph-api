@@ -119,7 +119,7 @@ In configuration under parameters there is an array of `queries`(see sample conf
 For each query extractor generates a number of tables prefixed with query name. Each table represents one type of node so typically tables would be `queryname_post`, `queryname_likes`, `queryname_comments` `queryname_insights`. Same nested structure type will be in the same table. So for example comments and subcomments will be in the same table `comments`. Every table has different columns but the following columns will always be the same:
 - **id**: unique id of the row
 - **parent-id**: the parent node id, e.g. comments parent-id refers to a post row id
-- **parent-type**: describes parent-id and its "vertical position" of the resulting tree. e.g for comments it will be `page_posts_comments`, for subcomments(i.e. comments of comments) it will be `page_posts_comments_comments` etc
+- **fb-graph-node**: describes the row "vertical position" of the resulting tree. e.g for comments it will be `page_posts_comments`, for subcomments(i.e. comments of comments) it will be `page_posts_comments_comments` etc
 - insights data objects will be flatten into columns `key1`, `key2` and `value` along with columns metric name, title, description etc
 
 

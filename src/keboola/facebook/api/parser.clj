@@ -31,7 +31,7 @@
         :ret (s/coll-of map? :into []))
 (defn get-nested-objects
   "Traverse body-data array and take out nested-object like structures.
-  Return array of objects with keys :name :data :parent-id :parent-type "
+  Return array of objects with keys :name :data :parent-id :fb-graph-node "
   [body-data params]
   (reduce
    (fn [memo, row]
@@ -41,7 +41,7 @@
                                            {:name (name k)
                                             :data v
                                             :parent-id (or (:id row) (:parent-id params))
-                                            :parent-type (str (:parent-type params) "_" (name k))
+                                            :fb-graph-node (str (:fb-graph-node params) "_" (name k))
                                             }) m))
                                  [] row)]
        (concat memo objects)

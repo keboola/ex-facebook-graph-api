@@ -13,7 +13,7 @@
     (io/delete-file file-path)))
 
 (defn sort-columns [columns]
-  (let [prefered-columns [:id :account-id :parent-type :parent-id :name :key1 :key2 :value :period :end_time :title]
+  (let [prefered-columns [:id :account-id :fb-graph-node :parent-id :name :key1 :key2 :value :period :end_time :title]
         used-prefered-columns (filter (set columns) prefered-columns)
         other-columns (filter #(not ((set used-prefered-columns) %)) columns)]
     (concat used-prefered-columns (sort other-columns))))
@@ -30,7 +30,7 @@
   (assoc row
          :account-id (-> row :keboola :account-id)
          :parent-id (-> row :keboola :parent-id)
-         :parent-type (-> row :keboola :parent-type)))
+         :fb-graph-node (-> row :keboola :fb-graph-node)))
 
 (defn write-manifest [file-path columns is-write?]
   (if is-write?
@@ -39,13 +39,13 @@
 
 (defn prepare-header [rows]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
-        all-columns (conj columns :parent-id :parent-type :account-id)]
+        all-columns (conj columns :parent-id :fb-graph-node :account-id)]
     (sort-columns all-columns)))
 
 (defn flush-buffer [csv-file file-path table-name memo]
   (let [first-write? (:first-write? memo)
         header (if first-write? (prepare-header (:buffer memo)) (:header memo))
-        has-data-columns (not-empty (disj (set header) :id :account-id :parent-type :parent-id))]
+        has-data-columns (not-empty (disj (set header) :id :account-id :fb-graph-node :parent-id))]
     (if has-data-columns
       (do
         (write-manifest file-path header first-write?)

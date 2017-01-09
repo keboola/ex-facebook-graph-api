@@ -50,7 +50,7 @@
     (let [new-response (:body ((:api-fn params) next-page-url))]
       [{
         :parent-id (:parent-id params)
-        :parent-type (:parent-type params)
+        :fb-graph-node (:fb-graph-node params)
         :name (:table-name params)
         :data new-response
         }])))
@@ -58,7 +58,7 @@
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [account-id parent-id parent-type table-name body-data api-fn response] :as init-params} ]
+  [{:keys [account-id parent-id fb-graph-node table-name body-data api-fn response] :as init-params} ]
   ((fn step [params this-object-data rest-objects]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
@@ -71,7 +71,7 @@
                     next-object (first all-objects)
                     new-params (assoc params
                                       :parent-id (:parent-id next-object)
-                                      :parent-type (:parent-type next-object)
+                                      :fb-graph-node (:fb-graph-node next-object)
                                       :table-name (:name next-object)
                                       :response (:data next-object)
                                       :body-data (:data (:data next-object)))]
@@ -99,7 +99,7 @@
        {
         :account-id (name (first %))
         :parent-id (name (first %))
-        :parent-type "page"
+        :fb-graph-node "page"
         :table-name "page"
         :body-data [(if (not-empty path) {(keyword path) (second %)} (second %))]
         :response (:body response)
