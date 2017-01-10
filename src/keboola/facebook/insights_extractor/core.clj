@@ -23,7 +23,7 @@
 (defn treat [fn-to-treat]
   (try+
    (fn-to-treat)
-   (catch #(<= 400 (:status %) 550) e
+   (catch #(and (some? (:status %)) (number? (:status %)) (<= 400 (:status %) 550)) e
      (let [msg (:body e)]
        (if (.contains msg "User request limit reached")
          (log-error-and-exit (str "REQUEST LIMIT REACHED. Up to now extracted data will be uploaded to storage." msg))
