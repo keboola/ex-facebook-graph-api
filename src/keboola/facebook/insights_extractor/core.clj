@@ -42,7 +42,11 @@
 (defn run [credentials parameters out-dir]
   (let [version (:api-version parameters)]
       (make-accounts-csv parameters out-dir)
-      (doseq [query (:queries parameters)] (query/run-query (assoc query :api-version version) credentials out-dir)))
+      (doseq [query (:queries parameters)]
+        (if (:disabled query)
+          (log-strings "Skipping query" (:name query))
+          ;else run query:
+          (query/run-query (assoc query :api-version version) credentials out-dir))))
   (log-strings "Finished, total count of requests to facebook api:" @fb-requests-count))
 
 (defn prepare-and-run [datadir]
