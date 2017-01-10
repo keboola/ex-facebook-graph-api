@@ -20,4 +20,4 @@ ADD . /code
 WORKDIR /code
 RUN boot build-insights
 EXPOSE 1111
-ENTRYPOINT ["java", "-jar", "-Xmx256m","targetinsights/project.jar", "-d" , "/data/"]
+ENTRYPOINT ["java", "-jar", "-Xmx1g","targetinsights/project.jar", "-d" , "/data/"]
