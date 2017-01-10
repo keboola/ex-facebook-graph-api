@@ -50,7 +50,7 @@
       (do
         (write-manifest file-path header first-write?)
         (csv/write-to-file csv-file header (:buffer memo) first-write?)
-        (if (= (mod (:cnt memo) (* chan-buffer-size 3)) 0)
+        (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
         ;return header
         header)
