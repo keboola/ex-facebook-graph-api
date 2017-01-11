@@ -1,7 +1,7 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.parser :as parser]
-              [keboola.docker.runtime :refer [log-strings]]
+              [keboola.docker.runtime :refer [log-strings app-error]]
               [keboola.http.client :as client]
               [clojure.string :as string]))
 
@@ -44,28 +44,38 @@
   "if response contains next page url then call it and wait for new repsonse
   result: vector with new nested-object like structure
   "
-  [response params]
+  [response params account-id top-node]
   ;(println "next url" (get-next-page-url response) (:paging response))
   (if-let [next-page-url (get-next-page-url response )] ; process next api page if exists
     (let [new-response (:body ((:api-fn params) next-page-url))]
-      [{
-        :parent-id (:parent-id params)
-        :fb-graph-node (:fb-graph-node params)
-        :name (:table-name params)
-        :data new-response
-        }])))
+      (cond (contains? new-response :data)
+            [{
+              :parent-id (:parent-id params)
+              :fb-graph-node (:fb-graph-node params)
+              :name (:table-name params)
+              :data new-response
+              }]
+            (contains? new-response (keyword account-id))
+            [{
+              :parent-id account-id
+              :fb-graph-node top-node
+              :name top-node
+              :data new-response
+              }]
+            :else
+            (app-error (str "Unknown page structure:" (keys new-response) "next-page" next-page-url (dissoc params :body-data :response :api-fn)))))))
 
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
   [{:keys [account-id parent-id fb-graph-node table-name body-data api-fn response] :as init-params} ]
-  ((fn step [params this-object-data rest-objects]
+  ((fn step [params this-object-data rest-objects top-node]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
                     new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
 
-                    next-page-data (get-next-page-data (:response params) params)
+                    next-page-data (get-next-page-data (:response params) params account-id top-node)
                     nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
                     next-object (first all-objects)
@@ -75,7 +85,7 @@
                                       :table-name (:name next-object)
                                       :response (:data next-object)
                                       :body-data (:data (:data next-object)))]
-                (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) )))))) init-params body-data [] ))
+                (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
 
 (defn make-paging-fn [access-token]
   (fn [url] (client/GET url :query-params {:access_token access-token} :as :json)))
