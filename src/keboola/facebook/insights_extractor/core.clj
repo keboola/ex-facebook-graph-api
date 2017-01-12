@@ -33,8 +33,8 @@
 
 (defn make-accounts-csv [parameters out-dir]
   (let [filepath (str out-dir "accounts")
-        header [:id :name :category]
         accounts (:accounts parameters)
+        header (vec (set (apply concat (map #(keys (dissoc (second %) :access_token)) accounts) ))) ;[:id :name :category]
         data (into [] (map (fn [[k v]] (select-keys v header)) accounts))]
     (log "writing accounts table")
     (csv/write filepath header data)))
