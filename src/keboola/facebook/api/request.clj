@@ -18,7 +18,7 @@
   "return absolute url to fb api given relative @path and @version"
   ([path] (make-url path default-version))
   ([path version]
-   (str graph-api-url version "/" path)))
+   (str graph-api-url (or version default-version) "/" path)))
 
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
@@ -116,7 +116,30 @@
         :api-fn next-page-api-fn})
      (:body response))))
 
+
+
+(defn- collect-result [response api-fn]
+  (lazy-seq
+   (if (not-empty (:data response))
+     (cons (:data response)
+           (if (some? (-> response :paging :next))
+             (collect-result (:body (api-fn (-> response :paging :next))) api-fn)) ))))
+
+
+(defn- get-request [access-token path & {:keys [query version]}]
+  (let [query-params (assoc query :access_token access-token)
+        request-fn (fn [url] (client/GET url :query-params query-params :as :json))
+        full-url (make-url path version)]
+    ;(println full-url)
+    (collect-result
+     (:body (request-fn full-url))
+     request-fn
+     )))
+
 (defn get-accounts [access-token & {:keys [version]}]
-  (get-in (client/GET (make-url "me/accounts" version)
-                      :query-params {:access_token access-token} :as :json)
-          [:body :data]))
+  (apply concat (get-request access-token "me/accounts" :version version)))
+
+(defn get-adaccounts [access-token & {:keys [version]}]
+  (apply concat (get-request access-token "me/adaccounts"
+                             :query {:fields "account_id,id,currency,business_name,name"}
+                             :version version)))
