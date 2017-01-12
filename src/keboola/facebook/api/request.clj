@@ -29,8 +29,8 @@
         all-simple-scalars (merge {:ex-account-id ex-account-id :keboola params} scalars objects-flatten)
         arrays (filter (fn [[k v]] (vector? v)) row)
         merged-arrays (map
-                       #(merge all-simple-scalars %) (mapcat (fn [[_ array]]
-                                                               (parser/flatten-array array)) arrays))]
+                       #(merge all-simple-scalars %) (mapcat (fn [[array-name array]]
+                                                               (parser/flatten-array array array-name)) arrays))]
     (if (empty? merged-arrays)
       (list all-simple-scalars)
       merged-arrays)))

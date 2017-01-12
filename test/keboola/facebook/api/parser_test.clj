@@ -24,7 +24,7 @@
 (deftest test-filter-flatten-objects
   (is (test-and-check `sut/filter-flatten-objects 20)))
 
-(deftest test-flatten-array
+#_(deftest test-flatten-array
   (is (test-and-check `sut/flatten-array 10)))
 
 #_(defspec test-unfold-nested-sequence 4

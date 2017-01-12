@@ -1,6 +1,7 @@
 (ns keboola.facebook.api.parser
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.specs :as ds]
+              [keboola.docker.runtime :refer [app-error]]
               [clj-time.core :as t]
               [clj-time.format :refer [formatter unparse]]
               [clojure.string :as string]))
@@ -73,14 +74,23 @@
      (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
      :else (list {:key1 "" :key2 "" :value item}))))
 
-(s/fdef flatten-array
-        :args (s/cat :array (s/coll-of ::ds/insights))
+(defn flatten-array-action [action]
+  (let [action_key (first (keys (dissoc action :value)))]
+    (list {:key1 (name action_key) :key2 (action action_key) :value (:value action)})))
+
+
+#_(s/fdef flatten-array
+        :args (s/cat :array (s/coll-of ::ds/insights) :array-name (s/or :val :values))
         :ret (s/* (s/map-of keyword? ::ds/table-value)))
 (defn flatten-array
   "flattens array of object with same structure prefixing its keys with array-name
   returns list of key-value pairs"
-  [array]
-  (mapcat #(flatten-array-value (:value %) (:end_time %)) array))
+  [array array-name]
+  (cond (= array-name :values)
+        (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
+        (= array-name :actions)
+        (mapcat #(flatten-array-action %) array)
+        :else (app-error (str "unsuported array:" array-name array))))
 
 (s/fdef filter-scalars
         :args (s/cat :row (s/map-of keyword? (s/or :scalar ::ds/table-value
