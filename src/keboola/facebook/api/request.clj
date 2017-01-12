@@ -111,7 +111,7 @@
         :parent-id (name (first %))
         :fb-graph-node "page"
         :table-name "page"
-        :body-data [(if (not-empty path) {(keyword path) (second %)} (second %))]
+        :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (second %)} (second %))]
         :response (:body response)
         :api-fn next-page-api-fn})
      (:body response))))
