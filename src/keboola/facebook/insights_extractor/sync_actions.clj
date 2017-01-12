@@ -9,3 +9,9 @@
   (let [token (:token credentials)
         accounts (mapv #(dissoc % :access_token) (request/get-accounts token))]
     (log (generate-string accounts))))
+
+
+(defn adaccounts [credentials config]
+  (let [token (:token credentials)
+        accounts (request/get-adaccounts token)]
+    (log (generate-string accounts))))

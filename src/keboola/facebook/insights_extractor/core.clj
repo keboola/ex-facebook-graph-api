@@ -59,6 +59,7 @@
       (empty? (:token credentials)) (docker-runtime/user-error "Missing facebook token"))
     (case action
       "accounts" (sync-actions/accounts credentials config)
+      "adaccounts" (sync-actions/adaccounts credentials config)
       (treat  #(run credentials parameters (docker-config/out-dir-path datadir))))))
 
 (defn -main [& args]
