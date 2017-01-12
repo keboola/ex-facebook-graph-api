@@ -19,8 +19,8 @@
     (concat used-prefered-columns (sort other-columns))))
 
 (defn get-primary-key [table-columns]
-  (let [basic-pk ["id" "parent_id"]
-        extended-pk ["key1" "key2" "end_time"]]
+  (let [basic-pk ["parent_id"]
+        extended-pk ["id" "key1" "key2" "end_time"]]
     (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
 (defn get-table-name [row]
