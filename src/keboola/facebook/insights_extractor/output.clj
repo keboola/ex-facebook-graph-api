@@ -20,7 +20,7 @@
 
 (defn get-primary-key [table-columns]
   (let [basic-pk ["parent_id"]
-        extended-pk ["id" "key1" "key2" "end_time"]]
+        extended-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop"]]
     (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
 (defn get-table-name [row]
