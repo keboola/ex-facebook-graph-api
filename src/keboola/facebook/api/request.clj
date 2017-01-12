@@ -23,10 +23,10 @@
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
   return list of objects with enhanced info(:keboola keyword) and all scalar values"
-  [row params account-id]
+  [row params ex-account-id]
   (let [scalars (parser/filter-scalars row)
         objects-flatten (parser/filter-flatten-objects row )
-        all-simple-scalars (merge {:account-id account-id :keboola params} scalars objects-flatten)
+        all-simple-scalars (merge {:ex-account-id ex-account-id :keboola params} scalars objects-flatten)
         arrays (filter (fn [[k v]] (vector? v)) row)
         merged-arrays (map
                        #(merge all-simple-scalars %) (mapcat (fn [[_ array]]
@@ -44,7 +44,7 @@
   "if response contains next page url then call it and wait for new repsonse
   result: vector with new nested-object like structure
   "
-  [response params account-id top-node]
+  [response params ex-account-id top-node]
   ;(println "next url" (get-next-page-url response) (:paging response))
   (if-let [next-page-url (get-next-page-url response )] ; process next api page if exists
     (let [new-response (:body ((:api-fn params) next-page-url))]
@@ -55,9 +55,9 @@
               :name (:table-name params)
               :data new-response
               }]
-            (contains? new-response (keyword account-id))
+            (contains? new-response (keyword ex-account-id))
             [{
-              :parent-id account-id
+              :parent-id ex-account-id
               :fb-graph-node top-node
               :name top-node
               :data new-response
@@ -68,14 +68,14 @@
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [account-id parent-id fb-graph-node table-name body-data api-fn response] :as init-params} ]
+  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data api-fn response] :as init-params} ]
   ((fn step [params this-object-data rest-objects top-node]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
-                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) account-id) this-object-data)
+                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) ex-account-id) this-object-data)
 
-                    next-page-data (get-next-page-data (:response params) params account-id top-node)
+                    next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
                     nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
                     next-object (first all-objects)
@@ -107,7 +107,7 @@
     (mapcat
      #(page-and-collect
        {
-        :account-id (name (first %))
+        :ex-account-id (name (first %))
         :parent-id (name (first %))
         :fb-graph-node "page"
         :table-name "page"
