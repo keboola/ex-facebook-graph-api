@@ -93,11 +93,11 @@
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
-  [access-token {:keys [fields ids path limit since until]} & {:keys [ version]}]
+  [access-token {:keys [fields ids path limit since until] :as whole-query} & {:keys [ version]}]
   (let [preparsed-fields (parser/preparse-fields fields)
         preparsed-since (parser/preparse-fields (or since ""))
         preparsed-until (parser/preparse-fields (or until ""))
-        query-params {:access_token access-token :fields preparsed-fields :ids ids :limit limit :since preparsed-since :until preparsed-until}
+        query-params (assoc whole-query :access_token access-token :fields preparsed-fields :since preparsed-since :until preparsed-until)
         full-url (make-url path version)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
         response (request-fn full-url)
