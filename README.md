@@ -6,7 +6,7 @@
 ##### the whole fb feed - all page posts, its likes, comments, likes of the comments, subcomments, likes of the subcomments
 ```
 {
-  "name": "all",
+  "name": "scrape",
   "type": "nested-query",
   "query": {
     "path": "feed",
@@ -18,24 +18,25 @@
 
 ```
 {
-  "name": "last_page_insights",
+  "name": "page_insights",
   "type": "nested-query",
   "query": {
     "path": "",
-    "fields": "insights.since(%%days:-5%%).metric(page_impressions,page_fans,page_engaged_users)",
+    "fields": "insights.since(5 days ago).metric(page_impressions,page_fans,page_engaged_users)",
     "ids": "<page_id>"
   }
 }
 ```
 According to the last facebook graph api all insights metrics that are needed to extract must be explicitely listed in the query, i.e., there is no general get-all-metrics data query type of call.
-##### extract posts [metrics](https://developers.facebook.com/docs/graph-api/reference/insights) `page_posts_impressions` and `post_impressions` for all posts
+##### extract posts [metrics](https://developers.facebook.com/docs/graph-api/reference/insights) `page_posts_impressions` and `post_impressions` for all posts:
+Note day we are using `since(now)` specification of insights time to get the most recent values, otherwise it may paginate over small periods of time and consume lots of request to facebook api.
 ```
 {
   "name": "posts_insights",
   "type": "nested-query",
   "query": {
     "path": "feed",
-    "fields": "insights.metric(page_posts_impressions,post_impressions)",
+    "fields": "insights.since(now).metric(page_posts_impressions,post_impressions)",
     "ids": "<page_id>"
   }
 }
@@ -61,14 +62,15 @@ In configuration under parameters there is an array of `queries`(see sample conf
 - `fields`: fields parameter of the graph api nested-query
 - `ids`: comma separated list of ids(typically page-ids) that will be prepended with path. It is also a parameter of graph api.
 - `limit` - size of one page(response). Default is 25, maximum 100. Useful when fb api returns error that the request is "too big" - in such case use smaller limit. This parameter also affects the total number of request made to fb api.
-- `since` - relates to the *created_time* of **path** parameter i.e., if path is "posts" then it takes all posts with *created_time* since the specified date in **since** parameter. If path is empty then it does not have any effect. Can be specified relatively, e.g. %%days:-10%%.
+- `since` - relates to the *created_time* of **path** parameter i.e., if path is "posts" then it takes all posts with *created_time* since the specified date in **since** parameter. If path is empty then it does not have any effect. Can be specified relatively, e.g. 10 days ago.
 - `until` - same as since above but specifies date until data with *created_time* date.
 
 
  The most important parameter is `fields` - tells what is going to extract. so here are few hints:
  - you can specify additional params of a node with dot e.g to specify since and limit params of posts: `posts.limit(100).since(2016-12-24){message,likes,comments{comments}}`
- - you can also specify date range using `since` or/and `until` that accepts unix timestamp values(in seconds) or date in format **yyy-mm-dd** or relative values using placeholder **%%days:[number]%%** e.g. all posts posted in last 10 days `posts.since(%%days:-10%%){message,likes,comments}`
- - if an object(e.g comments) does not have nesting specified it will extract all its columns but once the nesting is specified e.g commens{likes} then one has to explicitely specify all its column in the nesting e.g. `comments{from,message,created_time,likes}`
+ - you can also specify date range using `since` or/and `until` that accepts unix timestamp values(in seconds) or date in format **yyy-mm-dd** or relative values: e.g. all posts posted in last 10 days `posts.since(10 days ago){message,likes,comments}`
+ - relative date specification is parsed by this cool PHP function [strtotime](http://php.net/manual/en/function.strtotime.php)
+ - if an object(e.g comments) does not have nesting specified it will extract some of its columns but once the nesting is specified e.g commens{likes} then one has to explicitely specify all its column in the nesting e.g. `comments{from,message,created_time,likes}`
  - for each row id is extracted autmatically and no need to be specified in the query
  - to extract all posts with its comments, subcomments,likes and sublikes the query would look like this:
  ```
@@ -121,9 +123,10 @@ Note that you can specify facebook api version via `api-version` parameter. Defa
 
 ## Result tables description
 For each query extractor generates a number of tables prefixed with query name. Each table represents one type of node so typically tables would be `queryname_post`, `queryname_likes`, `queryname_comments` `queryname_insights`. Same nested structure type will be in the same table. So for example comments and subcomments will be in the same table `comments`. Every table has different columns but the following columns will always be the same:
-- **id**: unique id of the row
-- **parent-id**: the parent node id, e.g. comments parent-id refers to a post row id
-- **fb-graph-node**: describes the row "vertical position" of the resulting tree. e.g for comments it will be `page_feed_comments`, for subcomments(i.e. comments of comments) it will be `page_feed_comments_comments` etc
+- **id**: unique id of the row, some tables may not have it, e.g. ads insights
+- **parent_id**: the parent node id, e.g. comments parent-id refers to a post row id
+- **ex_account_id**: top root source under the extraction is beign done, it could be a page id or ads account id and it is specified in config under `ids` property.
+- **fb_graph_node**: describes the row "vertical position" of the resulting tree. e.g for comments it will be `page_feed_comments`, for subcomments(i.e. comments of comments) it will be `page_feed_comments_comments` etc
 - insights data objects will be flatten into columns `key1`, `key2` and `value` along with columns metric name, title, description etc
 
 
