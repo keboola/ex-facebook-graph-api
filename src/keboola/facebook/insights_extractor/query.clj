@@ -15,8 +15,9 @@
   (:token credentials))
 
 (defn check-ids [query all-ids]
-  (let [ids (get-in query [:query :ids])]
-    (if (empty? ids) (assoc-in query [:query :ids] all-ids)
+  (let [ids (get-in query [:query :ids])
+        has-ids-key (contains? (:query query) :ids)]
+    (if (and has-ids-key (empty? ids)) (assoc-in query [:query :ids] all-ids)
         ;else return query untouched
         query)))
 
