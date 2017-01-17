@@ -14,9 +14,16 @@
 (defn parse-token [credentials]
   (:token credentials))
 
-(defn run-query [query credentials out-dir]
+(defn check-ids [query all-ids]
+  (let [ids (get-in query [:query :ids])]
+    (if (empty? ids) (assoc-in query [:query :ids] all-ids)
+        ;else return query untouched
+        query)))
+
+(defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
   (let [token (parse-token credentials)
-        complete-query {:query (:query query) :name (:name query) :version (:api-version query)}]
+        q (check-ids query all-ids)
+        complete-query {:query (:query q) :name (:name q) :version (:api-version q)}]
     (case (:type query)
       "nested-query" (run-nested-query token out-dir complete-query))))
