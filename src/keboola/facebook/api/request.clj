@@ -104,17 +104,30 @@
         next-page-api-fn (make-paging-fn access-token)
         ]
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
-    (mapcat
-     #(page-and-collect
+    (if (some? ids)
+      (mapcat
+       #(page-and-collect
+         {
+          :ex-account-id (name (first %))
+          :parent-id (name (first %))
+          :fb-graph-node "page"
+          :table-name "page"
+          :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (second %)} (second %))]
+          :response (:body response)
+          :api-fn next-page-api-fn})
+       (:body response))
+       ;else - no ids response
+      (page-and-collect
        {
-        :ex-account-id (name (first %))
-        :parent-id (name (first %))
-        :fb-graph-node "page"
-        :table-name "page"
-        :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (second %)} (second %))]
-        :response (:body response)
-        :api-fn next-page-api-fn})
-     (:body response))))
+          :ex-account-id ""
+          :parent-id ""
+          :fb-graph-node "page"
+          :table-name "page"
+          :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (:body response)} (:body response))]
+          :response (:body response)
+          :api-fn next-page-api-fn
+        })
+      )))
 
 
 
