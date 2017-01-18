@@ -101,7 +101,9 @@
         full-url (make-url path version)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
         response (request-fn full-url)
+        response-body (:body response)
         next-page-api-fn (make-paging-fn access-token)
+        sanitized-path (keyword (string/replace path #"/" "_"))
         ]
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
     (if (some? ids)
@@ -112,10 +114,10 @@
           :parent-id (name (first %))
           :fb-graph-node "page"
           :table-name "page"
-          :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (second %)} (second %))]
-          :response (:body response)
+          :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
+          :response response-body
           :api-fn next-page-api-fn})
-       (:body response))
+       response-body)
        ;else - no ids response
       (page-and-collect
        {
@@ -123,8 +125,8 @@
           :parent-id ""
           :fb-graph-node "page"
           :table-name "page"
-          :body-data [(if (not-empty path) {(keyword (string/replace path #"/" "_")) (:body response)} (:body response))]
-          :response (:body response)
+          :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
+          :response (if (not-empty path) {sanitized-path response-body} response-body)
           :api-fn next-page-api-fn
         })
       )))
