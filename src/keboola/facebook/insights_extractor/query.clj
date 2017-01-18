@@ -8,7 +8,7 @@
 (defn run-nested-query [token out-dir {:keys [name query version]}]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)]
-    (output/write-rows all-rows (str out-dir name))
+    (output/write-rows all-rows out-dir name)
     (runtime/log-strings "Run query" name "finished" )))
 
 (defn parse-token [credentials]

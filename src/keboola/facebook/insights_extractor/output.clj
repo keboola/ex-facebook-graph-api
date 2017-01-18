@@ -1,6 +1,9 @@
 (ns keboola.facebook.insights-extractor.output
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
+            [keboola.docker.config :refer [mkdirp]]
+            [clj-time.coerce :refer [to-long]]
+            [clj-time.core :refer [now]]
             [slingshot.slingshot :refer [try+ throw+]]
             [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]
             [clojure.java.io :as io]))
@@ -11,6 +14,11 @@
 (defn delete-file-if-empty [file-path]
   (if (= 0 (.length (io/file file-path)))
     (io/delete-file file-path)))
+
+(defn delete-dir-if-empty [dir-path]
+  (let [dir-contents (.list (io/file dir-path))]
+    (if (empty? dir-contents)
+      (io/delete-file dir-path))))
 
 (defn sort-columns [columns]
   (let [prefered-columns [:id :ex-account-id :fb-graph-node :parent-id :name :key1 :key2 :value :period :end_time :title]
@@ -32,24 +40,38 @@
          :parent-id (-> row :keboola :parent-id)
          :fb-graph-node (-> row :keboola :fb-graph-node)))
 
-(defn write-manifest [file-path columns is-write?]
+(def columns-map (atom {}))
+
+(defn write-manifest [manifest-path columns is-write?]
   (if is-write?
-    (let [manifest {:incremental true :primary_key (get-primary-key columns)}]
-      (runtime/save-manifest file-path manifest))))
+    (let [manifest {:incremental true :primary_key (get-primary-key columns) :columns columns}]
+      (if (not (contains? @columns-map manifest-path))
+        (do
+          (runtime/save-manifest manifest-path manifest)
+          (swap! columns-map assoc manifest-path columns))))))
 
-(defn prepare-header [rows]
+
+
+(defn prepare-header [rows manifest-path]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
-        all-columns (conj columns :parent-id :fb-graph-node :ex-account-id)]
-    (sort-columns all-columns)))
+        all-columns (conj columns :parent-id :fb-graph-node :ex-account-id)
+        sorted-columns (sort-columns all-columns)]
+    (if (contains? @columns-map manifest-path)
+      ; if we have already columns then return them from the columns-map
+      (@columns-map manifest-path)
+      ; else return newly computed
+      sorted-columns)))
 
-(defn flush-buffer [csv-file file-path table-name memo]
+(defn flush-buffer [csv-file manifest-path table-name memo]
   (let [first-write? (:first-write? memo)
-        header (if first-write? (prepare-header (:buffer memo)) (:header memo))
+        header (if first-write?
+                 (prepare-header (:buffer memo) manifest-path)
+                 (:header memo))
         has-data-columns (not-empty (disj (set header) :id :ex-account-id :fb-graph-node :parent-id))]
     (if has-data-columns
       (do
-        (write-manifest file-path header first-write?)
-        (csv/write-to-file csv-file header (:buffer memo) first-write?)
+        (write-manifest manifest-path header first-write?)
+        (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
         ;return header
@@ -59,9 +81,9 @@
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
 
-(defn process-row [row csv-file file-path table-name memo]
+(defn process-row [row csv-file manifest-path table-name memo]
   (if (= (count (:buffer memo)) chan-buffer-size)
-    (let [header (flush-buffer csv-file file-path table-name memo)]
+    (let [header (flush-buffer csv-file manifest-path table-name memo)]
       {:cnt (inc (:cnt memo)) :header header :buffer (list row) :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
@@ -69,20 +91,24 @@
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
 
-(defn create-write-thread [table-name input-ch file-path-prefix]
+(defn create-write-thread [table-name input-ch out-dir qname-prefix]
   (async/thread
-    (let [file-path (str file-path-prefix "_" table-name)]
-      (with-open [out-file (io/writer file-path)]
+    (let [sliced-dir-path (str out-dir qname-prefix table-name)
+          sliced-file-name (str (to-long (now)))
+          sliced-file-path (str sliced-dir-path "/" sliced-file-name)]
+      (mkdirp sliced-dir-path)
+      (with-open [out-file (io/writer sliced-file-path)]
           (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
             (let [row (<!! input-ch)]
               (if (some? row)
-                (recur (process-row row out-file file-path table-name memo))
+                (recur (process-row row out-file sliced-dir-path table-name memo))
                 ;; else input-ch has closed -> don't call recur,
-                (if (some? (flush-buffer out-file file-path table-name memo))
+                (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
                   (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))
                 ;; thread terminates
                 ))))
-      (delete-file-if-empty file-path))
+      (delete-file-if-empty sliced-file-path)
+      (delete-dir-if-empty  sliced-dir-path))
     ; return true as succesfull finish of thread
     true))
 
@@ -95,11 +121,11 @@
   (while (async/<!! (async/merge thread-chans-vec))))
 
 
-(defn write-rows [rows file-path-prefix]
+(defn write-rows [rows out-dir qname-prefix]
   (let [sample (take sample-rows-count rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) file-path-prefix))
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
     (try+
