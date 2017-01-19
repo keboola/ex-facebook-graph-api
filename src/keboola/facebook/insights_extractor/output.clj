@@ -55,14 +55,20 @@
 (defn prepare-header [rows manifest-path]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
         all-columns (conj columns :parent-id :fb-graph-node :ex-account-id)
-        sorted-columns (sort-columns all-columns)
-        has-data-columns (not-empty (disj (set sorted-columns) :id :ex-account-id :fb-graph-node :parent-id))]
-    (if has-data-columns
-      (if (contains? @columns-map manifest-path)
-        ; if we have already columns then return them from the columns-map
-        (@columns-map manifest-path)
-        ; else return newly computed
-        sorted-columns))))
+        new-columns (sort-columns all-columns)
+        has-data-columns (not-empty (disj (set new-columns) :id :ex-account-id :fb-graph-node :parent-id))
+        saved-columns (@columns-map manifest-path)]
+    (if has-data-columns ;else return nil -> no data to write
+      (if saved-columns ;else returns new-columns
+        (if (= saved-columns new-columns) ;else throws error
+          ; return saved columns from previous query
+          saved-columns
+          ;else throw error on columns mismatch
+          (throw+ (str "columns mismatch, original write columns: " saved-columns " ,current write columns: " new-columns)))
+        ; else return newly computed columns
+        new-columns))
+    ; by default return nil saying we have no data to save
+    ))
 
 (defn flush-buffer [csv-file manifest-path table-name memo]
   (let [first-write? (:first-write? memo)
