@@ -101,7 +101,9 @@
 (defn create-write-thread [table-name input-ch out-dir qname-prefix]
   (async/thread
     (try+
-     (let [sliced-dir-path (str out-dir qname-prefix table-name)
+     (let [sliced-dir-path (str out-dir
+                                (if (= qname-prefix table-name) "" (str qname-prefix "_"))
+                                table-name)
            sliced-file-name (str (to-long (now)))
            sliced-file-path (str sliced-dir-path "/" sliced-file-name)]
        (mkdirp sliced-dir-path)

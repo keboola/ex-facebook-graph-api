@@ -6,10 +6,10 @@
             [clojure.string :as s]
             [clojure.core.async :as async]))
 
-(defn- run-and-write [token out-dir name query version]
+(defn- run-and-write [token out-dir prefix query version]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)]
-    (output/write-rows all-rows out-dir name)))
+    (output/write-rows all-rows out-dir prefix)))
 
 (defn run-nested-query [token out-dir {:keys [name query version]}]
   (if-let [ids-str (:ids query)]
