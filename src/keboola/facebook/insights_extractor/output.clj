@@ -5,7 +5,7 @@
             [clj-time.coerce :refer [to-long]]
             [clj-time.core :refer [now]]
             [slingshot.slingshot :refer [try+ throw+]]
-            [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alts!! timeout]]
+            [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alt!! alts!! timeout]]
             [clojure.java.io :as io]))
 
 (def chan-buffer-size 300)
@@ -93,32 +93,41 @@
 
 (defn create-write-thread [table-name input-ch out-dir qname-prefix]
   (async/thread
-    (let [sliced-dir-path (str out-dir qname-prefix table-name)
-          sliced-file-name (str (to-long (now)))
-          sliced-file-path (str sliced-dir-path "/" sliced-file-name)]
-      (mkdirp sliced-dir-path)
-      (with-open [out-file (io/writer sliced-file-path)]
-          (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
-            (let [row (<!! input-ch)]
-              (if (some? row)
-                (recur (process-row row out-file sliced-dir-path table-name memo))
-                ;; else input-ch has closed -> don't call recur,
-                (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
-                  (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))
-                ;; thread terminates
-                ))))
-      (delete-file-if-empty sliced-file-path)
-      (delete-dir-if-empty  sliced-dir-path))
-    ; return true as succesfull finish of thread
-    true))
+    (try+
+     (let [sliced-dir-path (str out-dir qname-prefix table-name)
+           sliced-file-name (str (to-long (now)))
+           sliced-file-path (str sliced-dir-path "/" sliced-file-name)]
+       (mkdirp sliced-dir-path)
+       (with-open [out-file (io/writer sliced-file-path)]
+         (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
+           (let [row (<!! input-ch)]
+             (if (some? row)
+               (recur (process-row row out-file sliced-dir-path table-name memo))
+               ;; else input-ch has closed -> don't call recur,
+               (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
+                 (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))
+               ;; thread terminates
+               ))))
+       (delete-file-if-empty sliced-file-path)
+       (delete-dir-if-empty  sliced-dir-path))
+     ; return true as succesfull finish of thread
+     {:return true}
+     (catch Object e
+       {:return false :error (str "failed write " table-name  " with error: " e)}
+       ))))
 
 (defn create-tables-map [tables-names value-fn]
   (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
 
-(defn close-channels [table-map thread-chans-vec]
+(defn close-channels [table-map thread-chans-vec error-strategy]
   (doseq [[_ c] table-map]
     (close! c))
-  (while (async/<!! (async/merge thread-chans-vec))))
+  (while (when-let [return-value (async/<!! (async/merge thread-chans-vec))]
+           (if-not (:return return-value)
+             (cond
+               (= error-strategy :throw-on-false-return) (throw+ (:error return-value))
+               (= error-strategy :log-on-false-return) (runtime/log-error (:error return-value))))
+           return-value)))
 
 
 (defn write-rows [rows out-dir qname-prefix]
@@ -131,9 +140,13 @@
     (try+
      (doseq [row rows]
        (let [table-name (get-table-name row)
-             output-chan (tables-chans table-name)]
-         (>!! output-chan (add-id-coloumns row))))
+             output-chan (tables-chans table-name)
+             output-row (add-id-coloumns row)
+             put-result (alt!! (timeout (* 30 1000)) :timed-out
+                               [[output-chan output-row]] :sent)]
+         (if (= put-result :timed-out)
+           (throw+ (str "There was an error writing to table " table-name " data:" output-row)))))
      (catch Object _
-       (close-channels tables-chans thread-chans-vec)
+       (close-channels tables-chans thread-chans-vec :log-on-false-return)
        (throw+)))
-    (close-channels tables-chans thread-chans-vec)))
+    (close-channels tables-chans thread-chans-vec :throw-on-false-return)))
