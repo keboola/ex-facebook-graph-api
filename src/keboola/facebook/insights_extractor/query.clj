@@ -3,13 +3,21 @@
   (:require [keboola.facebook.api.request :as request]
             [keboola.facebook.insights-extractor.output :as output]
             [keboola.docker.runtime :as runtime]
+            [clojure.string :as s]
             [clojure.core.async :as async]))
 
-(defn run-nested-query [token out-dir {:keys [name query version]}]
+(defn- run-and-write [token out-dir name query version]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)]
-    (output/write-rows all-rows out-dir name)
-    (runtime/log-strings "Run query" name "finished" )))
+    (output/write-rows all-rows out-dir name)))
+
+(defn run-nested-query [token out-dir {:keys [name query version]}]
+  (if-let [ids-str (:ids query)]
+    (doseq [ids (partition-all 50 (s/split ids-str #","))]
+      (run-and-write token out-dir name (assoc query :ids (s/join "," ids)) version))
+    ;else if no ids then run the whole query
+    (run-and-write token out-dir name query version))
+  (runtime/log-strings "Run query" name "finished"))
 
 (defn parse-token [credentials]
   (:token credentials))
