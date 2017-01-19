@@ -55,20 +55,21 @@
 (defn prepare-header [rows manifest-path]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
         all-columns (conj columns :parent-id :fb-graph-node :ex-account-id)
-        sorted-columns (sort-columns all-columns)]
-    (if (contains? @columns-map manifest-path)
-      ; if we have already columns then return them from the columns-map
-      (@columns-map manifest-path)
-      ; else return newly computed
-      sorted-columns)))
+        sorted-columns (sort-columns all-columns)
+        has-data-columns (not-empty (disj (set sorted-columns) :id :ex-account-id :fb-graph-node :parent-id))]
+    (if has-data-columns
+      (if (contains? @columns-map manifest-path)
+        ; if we have already columns then return them from the columns-map
+        (@columns-map manifest-path)
+        ; else return newly computed
+        sorted-columns))))
 
 (defn flush-buffer [csv-file manifest-path table-name memo]
   (let [first-write? (:first-write? memo)
         header (if first-write?
                  (prepare-header (:buffer memo) manifest-path)
-                 (:header memo))
-        has-data-columns (not-empty (disj (set header) :id :ex-account-id :fb-graph-node :parent-id))]
-    (if has-data-columns
+                 (:header memo))]
+    (if header
       (do
         (write-manifest manifest-path header first-write?)
         (csv/write-to-file csv-file header (:buffer memo) false)
@@ -76,7 +77,7 @@
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
         ;return header
         header)
-      ; else has only ids columns
+      ; else has only ids columns return nil header
       (do
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
