@@ -6,6 +6,7 @@
 ##### the whole fb feed - all page posts, its likes, comments, likes of the comments, subcomments, likes of the subcomments
 ```
 {
+  "id": 1,
   "name": "scrape",
   "type": "nested-query",
   "query": {
@@ -18,6 +19,7 @@
 
 ```
 {
+  "id": 2,
   "name": "page_insights",
   "type": "nested-query",
   "query": {
@@ -32,6 +34,7 @@ According to the last facebook graph api all insights metrics that are needed to
 Note day we are using `since(now)` specification of insights time to get the most recent values, otherwise it may paginate over small periods of time and consume lots of request to facebook api.
 ```
 {
+  "id": 3,
   "name": "posts_insights",
   "type": "nested-query",
   "query": {
@@ -57,10 +60,10 @@ https://developers.facebook.com/docs/graph-api/
 Lets say that in Facebook Graph Api every endpoint represents a node in a graph. Example of a node could be /me - ie user info, me/posts - ie posts of the current user. To get data from a particullar endpoint one can make typical REST api call GET `me/posts` or make a **nested** api call that basically allows to extract the whole subtree of a node. for example GET `me?fields=posts,comments,likes` extracts all posts comments and likes of an id(in this case it is me - current user).
 For more info see Making Nested Queries in https://developers.facebook.com/docs/graph-api/using-graph-api#reading
 #### Configuring nested query
-In configuration under parameters there is an array of `queries`(see sample configuration). Each query besides obvious properties `name`, `type`(currently only nested-query type), `disabled` contains object `query` with the following properties:
+In configuration under parameters there is an array of `queries`(see sample configuration). Each query besides obvious properties such as `id`, `name`, `type`(currently only nested-query type), `disabled` also contains object `query` with the following properties:
 - `path` : enpoint url so the absolute url will be like graph.facebook.com/version/path. Typically it is endpoint **feed**. Can be an empty string if we want to start extracting from the "root" node that is the page itself.
 - `fields`: fields parameter of the graph api nested-query
-- `ids`: comma separated list of ids(typically page-ids) that will be prepended with path. It is also a parameter of graph api.
+- `ids`: comma separated list of ids(typically page-ids) that will be prepended with path. It is also a parameter of graph api. If empty string than all ids from `accounts` object will be used. Can also be completely removed from the query.
 - `limit` - size of one page(response). Default is 25, maximum 100. Useful when fb api returns error that the request is "too big" - in such case use smaller limit. This parameter also affects the total number of request made to fb api.
 - `since` - relates to the *created_time* of **path** parameter i.e., if path is "posts" then it takes all posts with *created_time* since the specified date in **since** parameter. If path is empty then it does not have any effect. Can be specified relatively, e.g. 10 days ago.
 - `until` - same as since above but specifies date until data with *created_time* date.
@@ -103,6 +106,7 @@ Note that you can specify facebook api version via `api-version` parameter. Defa
     "api-version": "v2.8",
     "queries": [
       {
+        "id": 1,
         "name": "qname",
         "type": "nested-query",
         "query": {
