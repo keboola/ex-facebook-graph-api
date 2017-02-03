@@ -2,6 +2,7 @@
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
             [keboola.docker.config :refer [mkdirp]]
+            [clojure.string :refer [split]]
             [clj-time.coerce :refer [to-long]]
             [clj-time.core :refer [now]]
             [slingshot.slingshot :refer [try+ throw+]]
@@ -101,9 +102,10 @@
 (defn create-write-thread [table-name input-ch out-dir qname-prefix]
   (async/thread
     (try+
-     (let [sliced-dir-path (str out-dir
-                                (if (= qname-prefix table-name) "" (str qname-prefix "_"))
-                                table-name)
+     (let [kbc-table-name (if (= (last (split qname-prefix #"_")) table-name)
+                            qname-prefix
+                            (str qname-prefix "_" table-name))
+           sliced-dir-path (str out-dir kbc-table-name)
            sliced-file-name (str (to-long (now)))
            sliced-file-path (str sliced-dir-path "/" sliced-file-name)]
        (mkdirp sliced-dir-path)
