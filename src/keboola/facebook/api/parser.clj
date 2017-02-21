@@ -26,6 +26,16 @@
   [object]
   (and (map? object) (contains? object :data)))
 
+(defn extract-summary [object-name object row params]
+  (if (contains? object :summary)
+    {
+     :name "summary"
+     :data {:data [(:summary object)]}
+     :parent-id (or (:id row) (:parent-id params))
+     :fb-graph-node (str (:fb-graph-node params) "_" object-name)
+     }))
+
+
 (s/fdef get-nested-objects
         :args (s/cat :body-data ::ds/data
                      :params ::ds/keboola)
@@ -43,9 +53,10 @@
                                             :data v
                                             :parent-id (or (:id row) (:parent-id params))
                                             :fb-graph-node (str (:fb-graph-node params) "_" (name k))
-                                            }) m))
+                                            }
+                                           (extract-summary (name k) v row params)) m))
                                  [] row)]
-       (concat memo objects)
+       (concat memo (keep identity objects))
        memo))
    [] body-data))
 
