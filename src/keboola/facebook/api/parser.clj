@@ -9,6 +9,21 @@
 (defn relative-days-timestamp [days]
   (unparse (formatter "YYYY-MM-dd") (t/plus (t/now) (t/days (Integer/parseInt days)))))
 
+(defn special-array? [[object-name object-value]]
+  (and (vector? object-value)
+       (some? (#{:actions :video_30_sec_watched_actions :video_p95_watched_actions} object-name))))
+
+(defn extract-special-arrays [row params]
+  (let [arrays (filter special-array? row)]
+    (map
+         (fn [[k v]]
+           {:name "adsactionstats"
+            :data {:data (map #(assoc % :id (name k)) v)}
+            :parent-id (:parent-id params)
+            :fb-graph-node (str (:fb-graph-node params) "_adsactionstats" )
+            })
+         arrays)))
+
 (defn preparse-fields [fields-str]
   (string/replace fields-str #"%%days:-?\d+%%"
                   #(relative-days-timestamp (re-find #"-?\d+" %))))
@@ -99,8 +114,8 @@
   [array array-name]
   (cond (= array-name :values)
         (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
-        (= array-name :actions)
-        (mapcat #(flatten-array-action %) array)
+        (some? (#{:actions :video_30_sec_watched_actions :video_p95_watched_actions} array-name))
+        nil
         :else (app-error (str "unsuported array:" array-name array))))
 
 (s/fdef filter-scalars
