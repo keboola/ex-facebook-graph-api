@@ -85,11 +85,16 @@
      (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
      :else (list {:key1 "" :key2 "" :value item}))))
 
-(defn flatten-array-action [action]
-  (let [action_key (first (keys (dissoc action :value)))]
-    (list {:key1 (name action_key) :key2 (action action_key) :value (:value action)})))
-
-
+(def ads-action-stats-types #{:actions
+                              :action_values :canvas_component_avg_pct_view
+                              :cost_per_10_sec_video_view :cost_per_action_type :cost_per_unique_action_type
+                              :unique_actions :video_10_sec_watched_actions :video_15_sec_watched_actions
+                              :video_30_sec_watched_actions :video_avg_pct_watched_actions
+                              :video_avg_percent_watched_actions :video_avg_sec_watched_actions
+                              :video_avg_time_watched_actions :video_complete_watched_actions
+                              :video_p100_watched_actions :video_p25_watched_actions
+                              :video_p50_watched_actions :video_p75_watched_actions
+                              :video_p95_watched_actions :website_ctr})
 #_(s/fdef flatten-array
         :args (s/cat :array (s/coll-of ::ds/insights) :array-name (s/or :val :values))
         :ret (s/* (s/map-of keyword? ::ds/table-value)))
@@ -99,8 +104,8 @@
   [array array-name]
   (cond (= array-name :values)
         (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
-        (= array-name :actions)
-        (mapcat #(flatten-array-action %) array)
+        (some? (ads-action-stats-types array-name))
+        (map #(assoc % :ads_action_name (name array-name)) array)
         :else (app-error (str "unsuported array:" array-name array))))
 
 (s/fdef filter-scalars

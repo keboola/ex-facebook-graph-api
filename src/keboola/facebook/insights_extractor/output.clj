@@ -22,14 +22,14 @@
       (io/delete-file dir-path))))
 
 (defn sort-columns [columns]
-  (let [prefered-columns [:id :ex-account-id :fb-graph-node :parent-id :name :key1 :key2 :value :period :end_time :title]
+  (let [prefered-columns [:id :ex-account-id :fb-graph-node :parent-id :name :key1 :key2 :ads_action_name :action_type :action_reaction :value :period :end_time :title ]
         used-prefered-columns (filter (set columns) prefered-columns)
         other-columns (filter #(not ((set used-prefered-columns) %)) columns)]
     (concat used-prefered-columns (sort other-columns))))
 
 (defn get-primary-key [table-columns]
   (let [basic-pk ["parent_id"]
-        extended-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop"]]
+        extended-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]]
     (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
 
 (defn get-table-name [row]
