@@ -76,8 +76,7 @@
                     new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) ex-account-id) this-object-data)
 
                     next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
-                    special-arrays (mapcat #(parser/extract-special-arrays % params) this-object-data)
-                    nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data special-arrays)
+                    nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
                     all-objects (concat nested-objects rest-objects)
                     next-object (first all-objects)
                     new-params (assoc params
