@@ -156,5 +156,5 @@
 
 (defn get-adaccounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/adaccounts"
-                             :query {:fields "account_id,id,business_name,name"}
+                             :query {:fields "account_id,id,business_name,name,currency"}
                              :version version)))
