@@ -1,6 +1,7 @@
 (ns keboola.http.client
   (:require [clj-http.client :as http]
             [clojure.string :as str]
+            [keboola.http.recording :refer [record-request]]
             [keboola.docker.runtime :as runtime]))
 
 (def MAX_TRY_COUNT 4)
@@ -20,23 +21,16 @@
 
 (defn- make-request [method url & rest]
   (check-fb-requests url)
-  (method url (assoc (apply hash-map rest) :retry-handler retry-handler))
-  )
+  (method url (assoc (apply hash-map rest) :retry-handler retry-handler)))
+
 
 (defn GET [url & rest]
-  ;(println "paging")
-  (apply make-request http/get url rest)
-  )
+  (let [response (apply make-request http/get url rest)]
+    (record-request response :get url rest)
+    ; (println "response" response)
+    response
+    ))
 
 (defn POST [url & rest ]
   (apply make-request http/post url rest)
   )
-
-;(def memo-create-client (memoize http/create-client))
-
-; (def memo-create-client (memoize http/create-client))
-
-;; (defn default-client
-;;   "makes a default async client for the http comms"
-;;   []
-;;   (memo-create-client :follow-redirects false :request-timeout -1))
