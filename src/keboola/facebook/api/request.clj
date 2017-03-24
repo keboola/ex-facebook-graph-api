@@ -88,7 +88,7 @@
                 (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
 
 (defn make-paging-fn [access-token]
-  (fn [url] (client/GET url :query-params {:access_token access-token} :as :json)))
+  (fn [url] (client/GET url :as :json)))
 
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
