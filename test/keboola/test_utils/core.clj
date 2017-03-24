@@ -1,6 +1,7 @@
 (ns keboola.test-utils.core
   (:require [clojure.string :as string]
             [clojure.spec.test :as stest]
+            [clojure.java.io :as io]
             [clojure.test :refer [is]]))
 
 (defn test-and-check
@@ -30,6 +31,11 @@
 
 (defn mk-path [& args]
   (string/join "/" args))
+
+(defn copy-config-tmp [dir-path tmp-path]
+  (let [source-path (str dir-path "/config.json")
+        dest-path (str tmp-path "/config.json")]
+      (io/copy (io/file source-path) (io/file dest-path))))
 
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on

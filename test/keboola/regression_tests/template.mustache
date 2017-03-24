@@ -1,0 +1,16 @@
+(ns {{ns-name}}
+  (:require [{{apicalls-ns}} :as apicalls]
+            [clojure.test :as t :refer :all]
+            [keboola.test-utils.core :as test-utils]
+            [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
+            )
+  (:use clj-http.fake))
+
+(deftest {{test-name}}-test
+  (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "{{test-name}}"))]
+    (println "testing dir:" tmp-dir)
+    (test-utils/copy-config-tmp "{{dir-path}}" tmp-dir)
+    (with-global-fake-routes-in-isolation
+      apicalls/recorded
+      (prepare-and-run tmp-dir)
+      )))
