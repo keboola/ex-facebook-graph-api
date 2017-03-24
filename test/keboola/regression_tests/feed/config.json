@@ -1,0 +1,45 @@
+{
+  "storage": {},
+  "parameters": {
+    "accounts": {
+      "177057932317550": {
+        "id": "177057932317550",
+        "name": "keboola",
+        "category": "software"
+      }
+    },
+    "api-version": "v2.8",
+
+    "queries": [
+      {
+        "name": "feed",
+        "type": "nested-query",
+        "disabled": false,
+        "query": {
+          "path": "feed",
+          "fields": "caption,message,created_time,type,description,likes{name,username},comments{message,created_time,from,likes{name,username}}",
+          "ids": "177057932317550"
+        }
+      }
+    ]
+  },
+  "authorization": {
+    "oauth_api": {
+      "id": "{OAUTH_API_ID}",
+      "credentials": {
+        "id": "main",
+        "authorizedFor": "Myself",
+        "creator": {
+          "id": "1234",
+          "description": "me@keboola.com"
+        },
+        "created": "2016-01-31 00:13:30",
+        "oauthVersion": "facebook",
+        "appKey": "xxx",
+        "#data": "{\"token\":\"XXTOKENXX\",\"expires\":null,\"isLongLived\":true,\"version\":\"v2.8\"}",
+        "#appSecret": "KBC::Encrypted==ENCODEDSTRING=="
+      }
+    }
+  }
+
+}
