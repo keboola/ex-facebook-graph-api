@@ -23,7 +23,7 @@
   (apply str (take length (repeatedly random-char))))
 
 
-(def keywords-to-anonymize #{:name :story :caption :message})
+(def keywords-to-anonymize #{:name :story :caption :message :description})
 (defn- anonymize-item [item]
   (if (and
        (vector? item)
@@ -46,7 +46,9 @@
           anonymized-response (update-in response [:body] anonymize-map)
           body-string-response (update-in anonymized-response [:body] generate-string)]
       (swap! recording conj {:response body-string-response
-                             :request request}))))
+                             :request request})
+      anonymized-response)
+    response))
 
 (defn replace-token [item token]
   (if (string? item)
@@ -58,13 +60,11 @@
 
 (defn prepare-recording [token]
   (apply str (mapcat (fn [r]
-                            (let [response (postwalk #(replace-token % token) (:response r))]
-                                [
-                                 (pprint (postwalk #(replace-token % token) (:request r)))
-                                 (str "(fn [req]" (pprint response) ")")
-
-                                 ]))
-                          @recording) ))
+                       (let [request (postwalk #(replace-token % token) (:request r))
+                             response (postwalk #(replace-token % token) (:response r))]
+                         [(pprint request)
+                          (str "(fn [req]" (pprint response) ")")]))
+                     @recording)))
 
 (defn save-current-recording [path namespace-name token-to-replace]
   (let [ns-str (str "(ns " namespace-name ")\n")

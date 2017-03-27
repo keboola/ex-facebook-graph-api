@@ -28,7 +28,6 @@
   (let [response (apply make-request http/get url rest)]
     (record-request response :get url rest)
     ; (println "response" response)
-    response
     ))
 
 (defn POST [url & rest ]
