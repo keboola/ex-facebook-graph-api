@@ -42,6 +42,7 @@
          :fb-graph-node (-> row :keboola :fb-graph-node)))
 
 (def columns-map (atom {}))
+(defn reset-columns-map [] (reset! columns-map {}))
 
 (defn write-manifest [manifest-path columns is-write?]
   (if is-write?

@@ -3,28 +3,12 @@
             [keboola.http.recording :refer [reset-recording recording save-current-recording turn-recording-on turn-recording-off]]
             [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
             [keboola.docker.config :refer [user-credentials]]
+            [keboola.facebook.insights-extractor.output :refer [reset-columns-map]]
             [keboola.test-utils.core :as test-utils]
             [clojure.test :as t :refer :all]
             [clostache.parser]
-            [clj-http.fake :refer [with-global-fake-routes-in-isolation]]
-            )
-  )
+            [clj-http.fake :refer [with-global-fake-routes-in-isolation]]))
 
-#_(def apicalls     {
-     {:address "https://google.com/apps/ab"
-      :as :json
-      :query-params {:path "feed",
-       :fields
-       "caption,message,created_time,type,description,likes{name,username},comments{message,created_time,from,likes{name,username}}",
-       :ids "177057932317550",
-       :access_token "XXTOKENXX",
-       :since "",
-       :until ""}
-
-      }
-     (fn [request] {:status 200 :headers {} :body "{\"a\":1}"})
-     }
-)
 #_(deftest foo-test
   (with-global-fake-routes-in-isolation
     apicalls
@@ -35,7 +19,6 @@
        :access_token "XXTOKENXX",
        :since "",
        :until ""}))))
-
 
 (defn create-test-file [dir-path ns-name recording-ns test-name]
   (let [test-file-path (str dir-path "/" "test" "_" test-name ".clj")
@@ -58,6 +41,7 @@
         ]
     (turn-recording-on)
     (reset-recording)
+    (reset-columns-map)
     (prepare-and-run dir-path)
     (save-current-recording recording-path recording-ns (:token (user-credentials dir-path)))
     (create-test-file dir-path ns-name recording-ns clj-compliant-name)
