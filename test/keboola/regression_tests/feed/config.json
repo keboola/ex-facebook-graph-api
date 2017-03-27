@@ -18,7 +18,9 @@
         "query": {
           "path": "feed",
           "fields": "caption,message,created_time,type,description,likes{name,username},comments{message,created_time,from,likes{name,username}}",
-          "ids": "177057932317550"
+          "ids": "177057932317550",
+          "since": "3 years ago",
+          "until": "now"
         }
       }
     ]
