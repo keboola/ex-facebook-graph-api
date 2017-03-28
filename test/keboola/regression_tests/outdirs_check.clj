@@ -25,6 +25,7 @@
         f1-lines (set (read-file f1path))
         f2-lines (set (read-file f2path))
         diff (clojure.set/difference f1-lines f2-lines)]
+    #_(println "comparing" f1path "vs." f2path)
     (is (empty? diff) (str "files are not same:" f1path " vs " f2path ". Difference:" diff))))
 
 (defn compare-sliced-dir [expected actual]
@@ -35,6 +36,9 @@
     (doseq [pair pairs-to-compare]
       (compare-file-content pair))))
 
+(defn filter-manifests [dir]
+  (into {} (filter #(re-matches #".*\.manifest$" (first %)) dir)))
+
 (defn is-equal [expected-dir actual-dir]
   (let
       [exptected-tables-path (str expected-dir "/out/tables")
@@ -42,5 +46,7 @@
        ls-expected (list-dir exptected-tables-path)
        ls-actual (list-dir actual-tables-path)]
     (is-same-ls ls-expected ls-actual)
+    (doseq [manifest-name (keys (filter-manifests ls-expected))]
+      (compare-file-content [(ls-expected manifest-name) (ls-actual manifest-name)]))
     (doseq [dir-name (keys (filter-dirs ls-expected))]
       (compare-sliced-dir (ls-expected dir-name) (ls-actual dir-name)))))
