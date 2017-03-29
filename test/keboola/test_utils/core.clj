@@ -11,6 +11,16 @@
                  (stest/check spec-test {:clojure.spec.test.check/opts {:num-tests num-tests}}))]
      (= (:total result) (:check-passed result)))))
 
+(defn delete-recursively
+  "Delete dir recursively"
+  [fname]
+  (let [func (fn [func f]
+               (when (.isDirectory f)
+                 (doseq [f2 (.listFiles f)]
+                   (func func f2)))
+               (clojure.java.io/delete-file f))]
+    (func func (clojure.java.io/file fname))))
+
 (defmacro with-err-str
   "Evaluates exprs in a context in which *err* is bound to a fresh
   StringWriter.  Returns the string created by any nested printing
