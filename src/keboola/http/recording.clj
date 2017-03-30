@@ -23,7 +23,7 @@
   (apply str (take length (repeatedly random-char))))
 
 
-(def keywords-to-anonymize #{:name :story :caption :message :description})
+(def keywords-to-anonymize #{:name :story :caption :message :description :title})
 (defn- anonymize-item [item]
   (if (and
        (vector? item)
