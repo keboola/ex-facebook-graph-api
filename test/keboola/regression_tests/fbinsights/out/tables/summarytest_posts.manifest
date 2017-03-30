@@ -1,0 +1,1 @@
+{"columns":["id","ex-account-id","fb-graph-node","parent-id","created_time","message"],"incremental":true,"primary_key":["parent_id","id"]}

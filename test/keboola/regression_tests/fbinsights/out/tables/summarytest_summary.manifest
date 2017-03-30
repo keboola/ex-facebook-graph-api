@@ -1,0 +1,1 @@
+{"columns":["ex-account-id","fb-graph-node","parent-id","can_like","has_liked","total_count"],"incremental":true,"primary_key":["parent_id"]}
