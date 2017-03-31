@@ -12,7 +12,7 @@
                  [org.clojure/data.csv "0.1.3"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "0.2.395"]
-                 [adzerk/boot-test "1.1.2" :scope "test"]
+                 [adzerk/boot-test "1.2.0" :scope "test"]
                  [clj-http-fake "1.0.3"]
                  [slingshot "0.12.2"]
                  [clj-time "0.12.2"]])

@@ -35,6 +35,7 @@
       (.write w test-file-content))))
 
 (defn clean-test-directory [dirpath]
+  (println "cleaning test directory " dirpath)
   (let [files (.listFiles (File. dirpath))
         filtered-files (filter #(not= (.getName %) "config.json") files)]
     (doseq [f filtered-files]
@@ -48,6 +49,7 @@
         anonymized-oauth-data "{\"token\":\"XXTOKENXX\"}"
         anonymized-config (assoc-in config oauth-data-path anonymized-oauth-data)
         path (str dirpath "/config.json")]
+    (println "anonymizing token in" dirpath)
     (generate-stream anonymized-config (clojure.java.io/writer path) {:pretty true})))
 
 (defn generate-test
@@ -64,7 +66,9 @@
      (reset-recording)
      (reset-columns-map)
      (prepare-and-run dir-path)
+     (println "saving apicalls in " dirname)
      (save-current-recording recording-path recording-ns (:token (user-credentials dir-path)))
+     (println "creating test file " clj-compliant-name)
      (create-test-file dir-path ns-name recording-ns clj-compliant-name)
      (turn-recording-off)
      (if anonymize-token? (anonymize-config-token dir-path))
