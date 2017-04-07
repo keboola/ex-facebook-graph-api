@@ -1,5 +1,6 @@
 (ns keboola.regression-tests.outdirs-check
-  (:require [clojure.test :as t :refer :all])
+  (:require [clojure.test :as t :refer :all]
+            [cheshire.core :refer [parse-string]])
   (:import java.io.File ))
 
 
@@ -18,6 +19,24 @@
 (defn read-file [path]
   (with-open [r (clojure.java.io/reader path)]
     (doall (line-seq r))))
+
+(defn parse-json [path]
+  (let [file-content (slurp path)]
+    (parse-string file-content true)))
+
+(defn compare-manifests [expected-path actual-path]
+  (let [expected (parse-json expected-path)
+        actual (parse-json actual-path)
+        expected-pk-set (set (:primary_key expected))
+        actual-pk (:primary_key actual)
+        actual-pk-set (set actual-pk)
+        ]
+    (is (:incremental actual))
+    (is (=  (:columns expected) (:columns actual)))
+    (is (= (count actual-pk) (count actual-pk-set)))
+    (is (= expected-pk-set actual-pk-set))
+
+    ))
 
 (defn compare-file-content [[f1 f2]]
   (let [f1path (.getAbsolutePath f1)
@@ -47,6 +66,6 @@
        ls-actual (list-dir actual-tables-path)]
     (is-same-ls ls-expected ls-actual)
     (doseq [manifest-name (keys (filter-manifests ls-expected))]
-      (compare-file-content [(ls-expected manifest-name) (ls-actual manifest-name)]))
+      (compare-manifests (ls-expected manifest-name) (ls-actual manifest-name)))
     (doseq [dir-name (keys (filter-dirs ls-expected))]
       (compare-sliced-dir (ls-expected dir-name) (ls-actual dir-name)))))
