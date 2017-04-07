@@ -27,10 +27,13 @@
         other-columns (filter #(not ((set used-prefered-columns) %)) columns)]
     (concat used-prefered-columns (sort other-columns))))
 
-(defn get-primary-key [table-columns]
+(defn get-primary-key [table-columns table-name]
   (let [basic-pk ["parent_id"]
         extended-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]]
-    (concat basic-pk (filter (fn [column] (some #(= % (keyword column)) table-columns)) extended-pk))))
+    (concat basic-pk
+            (filter
+             (fn [column] (some #(= % (keyword column)) table-columns))
+             extended-pk))))
 
 (defn get-table-name [row]
   (-> row :keboola :table-name))
@@ -44,9 +47,9 @@
 (def columns-map (atom {}))
 (defn reset-columns-map [] (reset! columns-map {}))
 
-(defn write-manifest [manifest-path columns is-write?]
+(defn write-manifest [manifest-path columns is-write? table-name]
   (if is-write?
-    (let [manifest {:incremental true :primary_key (get-primary-key columns) :columns columns}]
+    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name) :columns columns}]
       (if (not (contains? @columns-map manifest-path))
         (do
           (runtime/save-manifest manifest-path manifest)
@@ -79,7 +82,7 @@
                  (:header memo))]
     (if header
       (do
-        (write-manifest manifest-path header first-write?)
+        (write-manifest manifest-path header first-write? table-name)
         (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
