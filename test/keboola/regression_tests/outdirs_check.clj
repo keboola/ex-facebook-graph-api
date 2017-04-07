@@ -27,16 +27,14 @@
 (defn compare-manifests [expected-path actual-path]
   (let [expected (parse-json expected-path)
         actual (parse-json actual-path)
-        expected-pk-set (set (:primary_key expected))
+        expected-pk (:primary_key expected)
         actual-pk (:primary_key actual)
         actual-pk-set (set actual-pk)
         ]
     (is (:incremental actual))
     (is (=  (:columns expected) (:columns actual)))
     (is (= (count actual-pk) (count actual-pk-set)))
-    (is (= expected-pk-set actual-pk-set))
-
-    ))
+    (is (= expected-pk actual-pk))))
 
 (defn compare-file-content [[f1 f2]]
   (let [f1path (.getAbsolutePath f1)
