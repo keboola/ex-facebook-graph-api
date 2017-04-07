@@ -27,9 +27,15 @@
         other-columns (filter #(not ((set used-prefered-columns) %)) columns)]
     (concat used-prefered-columns (sort other-columns))))
 
+(def TABLES-SPECIFIC-PK-MAP
+  {
+   "insights" #{"age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"}
+   })
 (defn get-primary-key [table-columns table-name]
   (let [basic-pk ["parent_id"]
-        extended-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]]
+        all-tables-pk #{"id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"}
+        table-only-pk  (TABLES-SPECIFIC-PK-MAP table-name #{})
+        extended-pk (clojure.set/union all-tables-pk table-only-pk)]
     (concat basic-pk
             (filter
              (fn [column] (some #(= % (keyword column)) table-columns))
