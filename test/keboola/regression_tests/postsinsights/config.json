@@ -14,8 +14,11 @@
       "type" : "nested-query",
       "disabled" : false,
       "query" : {
+        "limit" : "40",
+        "since" : "24 months ago",
+        "until" : "now",
         "path" : "feed",
-        "fields" : "insights.since(now).metric(post_negative_feedback, page_posts_impressions)",
+        "fields" : "insights.since(now).metric(post_video_view_time,post_engaged_fan,post_consumptions)",
         "ids" : null
       }
     } ]
