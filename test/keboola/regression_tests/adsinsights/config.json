@@ -1,0 +1,44 @@
+{
+  "storage" : { },
+  "parameters" : {
+    "accounts" : {
+      "act_10152562141153995" : {
+        "account_id" : "10152562141153995",
+        "business_name" : "",
+        "currency" : "EUR",
+        "id" : "act_10152562141153995",
+        "name" : "blabla"
+      }
+    },
+    "api-version" : "v2.8",
+    "queries" : [ {
+      "name" : "ads_insights",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "ads",
+        "limit" : "55",
+        "fields" : "insights.action_breakdowns(action_type).date_preset(last_3_days).time_increment(1){ad_id,impressions,reach,clicks,spend,video_30_sec_watched_actions,video_p95_watched_actions,actions}",
+        "ids" : "act_10152437784203995"
+      }
+    } ]
+  },
+  "authorization" : {
+    "oauth_api" : {
+      "id" : "{OAUTH_API_ID}",
+      "credentials" : {
+        "id" : "main",
+        "authorizedFor" : "Myself",
+        "creator" : {
+          "id" : "1234",
+          "description" : "me@keboola.com"
+        },
+        "created" : "2016-01-31 00:13:30",
+        "oauthVersion" : "facebook",
+        "appKey" : "xxx",
+        "#data" : "{\"token\":\"XXTOKENXX\"}",
+        "#appSecret" : "KBC::Encrypted==ENCODEDSTRING=="
+      }
+    }
+  }
+}

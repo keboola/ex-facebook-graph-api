@@ -1,0 +1,1 @@
+{"columns":["ex-account-id","fb-graph-node","parent-id","ads_action_name","action_type","value","ad_id","clicks","date_start","date_stop","impressions","reach","spend"],"incremental":true,"primary_key":["parent_id","date_start","date_stop","ads_action_name","action_type"]}
