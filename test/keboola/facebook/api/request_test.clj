@@ -37,9 +37,10 @@
          unknown-error-response)))
    })
 
-(deftest make-paging-fn-test
-  (let [call-url-fn (sut/make-paging-fn "")]
+#_(deftest make-paging-fn-test
+  (let [ ]
     (with-global-fake-routes-in-isolation
       apimocks
-      (call-url-fn "https://graph.facebook.com/v2.8/always_unknown_error_fail")
+      (sut/make-get-request "https://graph.facebook.com/v2.8/always_unknown_error_fail")
+      true
       )))
