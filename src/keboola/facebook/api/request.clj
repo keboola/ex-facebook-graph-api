@@ -20,6 +20,12 @@
   ([path version]
    (str graph-api-url (or version default-version) "/" path)))
 
+(defn make-get-request
+  ([url]
+   (client/GET url :as :json))
+  ([url query-params]
+   (client/GET url :query-params query-params :as :json)))
+
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
   return list of objects with enhanced info(:keboola keyword) and all scalar values"
@@ -47,7 +53,7 @@
   [response params ex-account-id top-node]
   ;(println "next url" (get-next-page-url response) (:paging response))
   (if-let [next-page-url (get-next-page-url response )] ; process next api page if exists
-    (let [new-response (:body ((:api-fn params) next-page-url))]
+    (let [new-response (:body (make-get-request next-page-url))]
       (cond (contains? new-response :data)
             [{
               :parent-id (:parent-id params)
@@ -63,17 +69,17 @@
               :data new-response
               }]
             :else
-            (app-error (str "Unknown page structure:" (keys new-response) "next-page" next-page-url (dissoc params :body-data :response :api-fn)))))))
+            (app-error (str "Unknown page structure:" (keys new-response) "next-page" next-page-url (dissoc params :body-data :response)))))))
 
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data api-fn response] :as init-params} ]
+  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data response] :as init-params} ]
   ((fn step [params this-object-data rest-objects top-node]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
               (let [
-                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response :api-fn) ex-account-id) this-object-data)
+                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response) ex-account-id) this-object-data)
 
                     next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
                     nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
@@ -87,9 +93,6 @@
                                       :body-data (:data (:data next-object)))]
                 (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
 
-(defn make-paging-fn [access-token]
-  (fn [url] (client/GET url :as :json)))
-
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
@@ -99,10 +102,8 @@
         preparsed-until (parser/preparse-fields (or until ""))
         query-params (assoc whole-query :access_token access-token :fields preparsed-fields :since preparsed-since :until preparsed-until)
         full-url (make-url path version)
-        request-fn (fn [url] (client/GET url :query-params query-params :as :json))
-        response (request-fn full-url)
+        response (make-get-request full-url query-params)
         response-body (:body response)
-        next-page-api-fn (make-paging-fn access-token)
         sanitized-path (keyword (string/replace path #"/" "_"))
         ]
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
@@ -116,7 +117,7 @@
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
           :response response-body
-          :api-fn next-page-api-fn})
+          })
        response-body)
        ;else - no ids response
       (page-and-collect
@@ -127,11 +128,7 @@
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
           :response (if (not-empty path) {sanitized-path response-body} response-body)
-          :api-fn next-page-api-fn
-        })
-      )))
-
-
+        }))))
 
 (defn- collect-result [response api-fn]
   (lazy-seq
