@@ -2,6 +2,7 @@
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.parser :as parser]
               [keboola.docker.runtime :refer [log-strings app-error]]
+              [slingshot.slingshot :refer [try+ throw+]]
               [keboola.http.client :as client]
               [clojure.string :as string]))
 
@@ -20,11 +21,31 @@
   ([path version]
    (str graph-api-url (or version default-version) "/" path)))
 
+(defn get-next-limit [current-limit]
+  (if (< current-limit 1)
+    0
+    (int (Math/ceil (/ current-limit 2)))))
+
+
+(defn call-and-adapt [api-fn current-limit previous-limit rethrow?]
+  (try+
+   (api-fn)
+   (catch Object e ;TODO check if is unknown error or too many data
+     (if rethrow?
+       (throw+ e)
+       (let [next-limit (get-next-limit current-limit)
+             next-api-fn #(api-fn next-limit)
+             next-rethrow? (= previous-limit 1)]
+         (call-and-adapt next-api-fn next-limit current-limit next-rethrow?))))))
+
 (defn make-get-request
   ([url]
    (client/GET url :as :json))
   ([url query-params]
-   (client/GET url :query-params query-params :as :json)))
+   (let [call-api-fn (fn ([] (client/GET url :query-params query-params :as :json))
+                       ([limit] (client/GET url :query-params (assoc query-params :limit limit) :as :json)))
+         current-limit (:limit query-params)]
+     (call-and-adapt call-api-fn current-limit current-limit false))))
 
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
