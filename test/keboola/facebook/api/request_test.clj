@@ -23,24 +23,36 @@
 (defn set-error-count [new-count] (reset! error-count new-count))
 (defn dec-error-count [] (set-error-count (dec @error-count)))
 
-(def apimocks
+(def apimocks-templates
   {
-   "https://graph.facebook.com/v2.8/always_unknown_error_fail"
+   "https://graph.facebook.com/v2.8/always_200?token=aa"
+   (fn [req]
+     success-response)
+   "https://graph.facebook.com/v2.8/always_unknown_error_fail?token=aa"
    (fn [req]
      unknown-error-response)
-   "https://graph.facebook.com/v2.8/fail_on_error_count_and_decrement"
+   "https://graph.facebook.com/v2.8/fail_on_error_count_and_decrement?token=aa"
    (fn [req]
      (if (= @error-count 0)
        success-response
        (do
          (dec-error-count)
-         unknown-error-response)))
-   })
+         (rand-nth [unknown-error-response reduce-data-response]))))})
 
-#_(deftest make-paging-fn-test
-  (let [ ]
-    (with-global-fake-routes-in-isolation
-      apimocks
-      (sut/make-get-request "https://graph.facebook.com/v2.8/always_unknown_error_fail")
-      true
-      )))
+
+(defn generate-apimocks [max-limit]
+  (into {} (mapcat
+            (fn [[k v]]
+              (map (fn [i] [(str k "&limit=" i) v]) (range 1 max-limit)))
+            apimocks-templates)))
+
+(deftest make-get-request-500-200-test
+  (with-global-fake-routes-in-isolation
+    (generate-apimocks 101)
+    (set-error-count 7)
+    (is (= 200 (:status (sut/make-get-request "https://graph.facebook.com/v2.8/fail_on_error_count_and_decrement?token=aa&limit=25"))))))
+
+(deftest make-get-request-200-test
+  (with-global-fake-routes-in-isolation
+    (generate-apimocks 101)
+    (is (= 200 (:status (sut/make-get-request "https://graph.facebook.com/v2.8/always_200?token=aa&limit=20"))))))
