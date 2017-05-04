@@ -22,30 +22,65 @@
    (str graph-api-url (or version default-version) "/" path)))
 
 (defn get-next-limit [current-limit]
-  (if (< current-limit 1)
-    0
-    (int (Math/ceil (/ current-limit 2)))))
+  (let [limit (if (int? current-limit) current-limit (Integer/parseInt current-limit))]
+    (if (< limit 1)
+      0
+      (int (Math/ceil (/ limit 2))))))
 
+(def DEFAULT_LIMIT "25")
+(defn parse-limit-from-url [url]
+  (re-find #"\d+" (or  (last (re-seq #"limit=\d+" url)) "")))
 
-(defn call-and-adapt [api-fn current-limit previous-limit rethrow?]
+(defn update-url-with-limit [url new-limit]
+  ;(println "myURL " url new-limit)
+  (let [has-query-params (clojure.string/includes? url "?")
+        parts (clojure.string/split url #"limit=")
+        first-part (apply str (clojure.string/join "limit=" (drop-last parts)))
+        last-part (last parts)]
+    (if (empty? first-part)
+      (if has-query-params
+        (str url "&limit=" new-limit)
+        (str url "?limit=" new-limit))
+      (str first-part
+           "limit="
+           (clojure.string/replace-first last-part #"\d+" (str new-limit))))))
+
+(defn retry-exception? [e]
+  (if-let [status (:status e)]
+      (and
+       (<= 500 status 600)
+       (or
+        (re-find #"An unknown error occurred" (-> e :body))
+        (re-find #"Please reduce the amount of data" (-> e :body))))))
+
+(def MIN_TRY_LIMIT_COUNT 3)
+(def MIN_TRY_LIMIT 1)
+
+(defn call-and-adapt [api-fn url min-limit-count]
   (try+
-   (api-fn)
-   (catch Object e ;TODO check if is unknown error or too many data
-     (if rethrow?
+   (api-fn url)
+   (catch retry-exception? e
+     (if (zero? min-limit-count)
        (throw+ e)
-       (let [next-limit (get-next-limit current-limit)
-             next-api-fn #(api-fn next-limit)
-             next-rethrow? (= previous-limit 1)]
-         (call-and-adapt next-api-fn next-limit current-limit next-rethrow?))))))
+       (let [current-limit (or (parse-limit-from-url url) DEFAULT_LIMIT)
+             new-limit (get-next-limit current-limit)
+             new-url (update-url-with-limit url new-limit)
+             new-min-limit-count (if (= new-limit MIN_TRY_LIMIT) (dec min-limit-count)
+                                     min-limit-count)]
+         (println "RETYRING" new-min-limit-count new-limit url)
+         (call-and-adapt api-fn new-url new-min-limit-count))))))
 
 (defn make-get-request
   ([url]
-   (client/GET url :as :json))
+   (let [call-api-fn (fn [url] (client/GET url :as :json))
+         current-limit (parse-limit-from-url url)
+         new-url (if current-limit (update-url-with-limit url current-limit) url)]
+     (call-and-adapt call-api-fn new-url MIN_TRY_LIMIT_COUNT)))
   ([url query-params]
-   (let [call-api-fn (fn ([] (client/GET url :query-params query-params :as :json))
-                       ([limit] (client/GET url :query-params (assoc query-params :limit limit) :as :json)))
-         current-limit (:limit query-params)]
-     (call-and-adapt call-api-fn current-limit current-limit false))))
+   (let [call-api-fn (fn [url] (client/GET url :query-params (dissoc query-params :limit) :as :json))
+         current-limit (:limit query-params)
+         new-url (if current-limit (update-url-with-limit url current-limit) url)]
+     (call-and-adapt call-api-fn new-url MIN_TRY_LIMIT_COUNT))))
 
 (defn extract-values
   "traverse object(@row) values and take only scalar values or flatten simple objects(key->value) or explodes arrays(insights metrics)
