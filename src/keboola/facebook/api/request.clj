@@ -1,7 +1,7 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec :as s]
               [keboola.facebook.api.parser :as parser]
-              [keboola.docker.runtime :refer [log-strings app-error]]
+              [keboola.docker.runtime :refer [log-strings app-error log-error]]
               [slingshot.slingshot :refer [try+ throw+]]
               [keboola.http.client :as client]
               [clojure.string :as string]))
@@ -32,7 +32,6 @@
   (re-find #"\d+" (or  (last (re-seq #"limit=\d+" url)) "")))
 
 (defn update-url-with-limit [url new-limit]
-  ;(println "myURL " url new-limit)
   (let [has-query-params (clojure.string/includes? url "?")
         parts (clojure.string/split url #"limit=")
         first-part (apply str (clojure.string/join "limit=" (drop-last parts)))
@@ -67,7 +66,8 @@
              new-url (update-url-with-limit url new-limit)
              new-min-limit-count (if (= new-limit MIN_TRY_LIMIT) (dec min-limit-count)
                                      min-limit-count)]
-         (println "RETYRING" new-min-limit-count new-limit url)
+         (log-error (:body e))
+         (log-error "RETYRING request with limit " new-limit)
          (call-and-adapt api-fn new-url new-min-limit-count))))))
 
 (defn make-get-request
