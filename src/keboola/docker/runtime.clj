@@ -25,8 +25,7 @@
   (apply println strings))
 
 (defn log [what]
-  (println what)
-  )
+  (println what))
 
 (defn log-error-and-exit [what]
   (log-error what)
