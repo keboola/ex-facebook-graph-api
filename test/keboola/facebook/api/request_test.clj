@@ -31,6 +31,9 @@
 (def unknown-error-response
   {:request-time 30136, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 500, :length 77, :body "{\"error\":{\"code\":1,\"message\":\"An unknown error occurred\",\"error_subcode\":99}}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]})
 
+(def unexpected-error-response
+  {:request-time 30136, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 500, :length 77, :body "{\"error\":{\"code\":2,\"message\":\"An unexpected error has occurred. Please retry your request later.\",\"is_transient\":true}}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]})
+
 (def success-response
   {:request-time 30, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :headers {}, :orig-content-encoding nil, :status 200, :length 77, :body "{}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]}
   )
@@ -58,7 +61,7 @@
        success-response
        (do
          (dec-error-count)
-         (rand-nth [unknown-error-response reduce-data-response]))))})
+         (rand-nth [unexpected-error-response unknown-error-response reduce-data-response]))))})
 
 
 (deftest test-400-response
