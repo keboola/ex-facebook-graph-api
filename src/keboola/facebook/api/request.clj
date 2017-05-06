@@ -49,8 +49,9 @@
       (and
        (<= 500 status 600)
        (or
-        (re-find #"An unknown error occurred" (-> e :body))
-        (re-find #"Please reduce the amount of data" (-> e :body))))))
+        (re-find #"An unknown error occurred" (:body e))
+        (re-find #"An unexpected error has occurred. Please retry" (:body e))
+        (re-find #"Please reduce the amount of data" (:body e))))))
 
 (def MIN_TRY_LIMIT_COUNT 3)
 (def MIN_TRY_LIMIT 1)
