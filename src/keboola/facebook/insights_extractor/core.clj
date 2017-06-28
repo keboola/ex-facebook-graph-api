@@ -39,31 +39,34 @@
     (log "writing accounts table")
     (csv/write filepath header data)))
 
-(defn run [credentials parameters out-dir]
+(defn run [credentials parameters out-dir app-access-token]
   (let [version (:api-version parameters)
         all-ids (apply str (interpose "," (map name (keys (:accounts parameters)))))]
-      (make-accounts-csv parameters out-dir)
-      (dorun (map (fn  [query]
-                    (if (:disabled query)
-                      (log-strings "Skipping query" (:name query))
-                      ; else run query:
-                      (query/run-query (assoc query :api-version version) all-ids credentials out-dir)))
-                  (:queries parameters))))
+    (make-accounts-csv parameters out-dir)
+    (sync-actions/log-debug-token app-access-token credentials "Access token info:")
+    (dorun (map (fn  [query]
+                  (if (:disabled query)
+                    (log-strings "Skipping query" (:name query))
+                                        ; else run query:
+                    (query/run-query (assoc query :api-version version) all-ids credentials out-dir)))
+                (:queries parameters))))
   (log-strings "Finished, total count of requests to facebook api:" @fb-requests-count))
 
 (defn prepare-and-run [datadir]
   (let [ parameters (docker-config/parameters datadir)
-         config (docker-config/config datadir)
-         action (:action config)
-         credentials (docker-config/user-credentials datadir)]
+        config (docker-config/config datadir)
+        action (:action config)
+        app-access-token (docker-config/app-access-token datadir)
+        out-dir-path (docker-config/out-dir-path datadir)
+        credentials (docker-config/user-credentials datadir)]
     (cond
       (empty? credentials) (docker-runtime/user-error "Missing facebook credentials")
       (empty? (:token credentials)) (docker-runtime/user-error "Missing facebook token"))
     (case action
-      "debugtoken" (sync-actions/debug-token (docker-config/app-access-token datadir) credentials)
+      "debugtoken" (sync-actions/log-debug-token app-access-token credentials nil)
       "accounts" (sync-actions/accounts credentials config)
       "adaccounts" (sync-actions/adaccounts credentials config)
-      (treat  #(run credentials parameters (docker-config/out-dir-path datadir))))))
+      (treat  #(run credentials parameters out-dir-path app-access-token)))))
 
 (defn -main [& args]
   (let [{:keys [options summary errors] :as parsed-args} (parse-opts args cli-options)]
