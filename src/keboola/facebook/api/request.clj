@@ -212,3 +212,8 @@
   (apply concat (get-request access-token "me/adaccounts"
                              :query {:fields "account_id,id,business_name,name,currency"}
                              :version version)))
+
+(defn debug-token [app-token input-token & {:keys [version]}]
+  (let [query {:access_token app-token :input_token input-token}
+        url (make-url "debug_token" version)]
+    (:body (client/GET url :query-params query :as :json))))
