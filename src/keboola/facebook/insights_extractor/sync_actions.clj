@@ -15,3 +15,9 @@
   (let [token (:token credentials)
         accounts (request/get-adaccounts token)]
     (log (generate-string accounts))))
+
+(defn debug-token [app-token credentials]
+  (let [input-token (:token credentials)
+        response-data (:data (request/debug-token app-token input-token))
+        result (dissoc response-data :app_id)]
+      (log (generate-string result))))
