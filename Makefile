@@ -26,7 +26,7 @@ run-docker:
 # runs extractor a compiled jar file as java app. Built via boot build
 # command or make build-jar command.
 run-jar:
-	java -Xmx1g -jar targetinsights/project.jar -d $(DATADIR)
+	java -Xmx1g -jar targetinsights/exinsights-0.0.1.jar -d $(DATADIR)
 
 # runs extractor directly from boot ie runs as clojure program
 run-boot:
