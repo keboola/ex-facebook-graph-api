@@ -41,6 +41,15 @@
   (:parameters (apply load-config datadir))
   )
 
+(defn app-access-token [& datadir]
+  (let
+      [auth-info (get-in
+                  (apply load-config datadir)
+                  [:authorization :oauth_api :credentials])
+       app-secret (:#appSecret auth-info)
+       app-id (:appKey auth-info)]
+    (str app-id "|" app-secret)))
+
 (defn user-credentials [& datadir]
   (let
       [data (get-in
