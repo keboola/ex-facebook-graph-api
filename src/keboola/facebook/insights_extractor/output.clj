@@ -22,15 +22,15 @@
       (io/delete-file dir-path))))
 
 (defn sort-columns [columns]
-  (let [prefered-columns [:id :ex-account-id :fb-graph-node :parent-id :name :key1 :key2 :ads_action_name :action_type :action_reaction :value :period :end_time :title ]
+  (let [prefered-columns [:id :ex-account-id :fb-graph-node :parent-id :name :key1 :key2 :ads_action_name :action_type :action_reaction :value :period :end_time :title]
         used-prefered-columns (filter (set columns) prefered-columns)
         other-columns (filter #(not ((set used-prefered-columns) %)) columns)]
     (concat used-prefered-columns (sort other-columns))))
 
 (def TABLES-SPECIFIC-PK-MAP
   {
-   "insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
-   })
+   "insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]})
+   
 (defn get-primary-key [table-columns table-name]
   (let [basic-pk ["parent_id"]
         all-tables-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]
@@ -77,9 +77,9 @@
           ;else throw error on columns mismatch
           (throw+ (str "columns mismatch, original write columns: " saved-columns " ,current write columns: " new-columns)))
         ; else return newly computed columns
-        new-columns))
+        new-columns))))
     ; by default return nil saying we have no data to save
-    ))
+    
 
 (defn flush-buffer [csv-file manifest-path table-name memo]
   (let [first-write? (:first-write? memo)
@@ -126,16 +126,16 @@
                (recur (process-row row out-file sliced-dir-path table-name memo))
                ;; else input-ch has closed -> don't call recur,
                (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
-                 (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))
+                 (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))))))
                ;; thread terminates
-               ))))
+               
        (delete-file-if-empty sliced-file-path)
        (delete-dir-if-empty  sliced-dir-path))
      ; return true as succesfull finish of thread
      {:return true}
      (catch Object e
-       {:return false :error (str "failed write " table-name  " with error: " e)}
-       ))))
+       {:return false :error (str "failed write " table-name  " with error: " e)}))))
+       
 
 (defn create-tables-map [tables-names value-fn]
   (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))

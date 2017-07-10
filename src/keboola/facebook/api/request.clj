@@ -10,7 +10,7 @@
 (def default-version "v2.8")
 
 (s/fdef make-url
-        :args (s/or :path-only (s/cat :path string? )
+        :args (s/or :path-only (s/cat :path string?)
                     :path-and-version (s/cat :path string? :version string?))
         :fn #(-> % :ret (clojure.string/starts-with? graph-api-url))
         :ret string?)
@@ -88,7 +88,7 @@
   return list of objects with enhanced info(:keboola keyword) and all scalar values"
   [row params ex-account-id]
   (let [scalars (parser/filter-scalars row)
-        objects-flatten (parser/filter-flatten-objects row )
+        objects-flatten (parser/filter-flatten-objects row)
         all-simple-scalars (merge {:ex-account-id ex-account-id :keboola params} scalars objects-flatten)
         arrays (filter (fn [[k v]] (vector? v)) row)
         merged-arrays (map
@@ -109,29 +109,29 @@
   "
   [response params ex-account-id top-node]
   ;(println "next url" (get-next-page-url response) (:paging response))
-  (if-let [next-page-url (get-next-page-url response )] ; process next api page if exists
+  (if-let [next-page-url (get-next-page-url response)] ; process next api page if exists
     (let [new-response (:body (make-get-request next-page-url))]
       (cond (contains? new-response :data)
             [{
               :parent-id (:parent-id params)
               :fb-graph-node (:fb-graph-node params)
               :name (:table-name params)
-              :data new-response
-              }]
+              :data new-response}]
+              
             (contains? new-response (keyword ex-account-id))
             [{
               :parent-id ex-account-id
               :fb-graph-node top-node
               :name top-node
-              :data new-response
-              }]
+              :data new-response}]
+              
             :else
             (app-error (str "Unknown page structure:" (keys new-response) "next-page" next-page-url (dissoc params :body-data :response)))))))
 
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data response] :as init-params} ]
+  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data response] :as init-params}]
   ((fn step [params this-object-data rest-objects top-node]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
@@ -161,8 +161,8 @@
         full-url (make-url path version)
         response (make-get-request full-url query-params)
         response-body (:body response)
-        sanitized-path (keyword (string/replace path #"/" "_"))
-        ]
+        sanitized-path (keyword (string/replace path #"/" "_"))]
+        
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
     (if (some? ids)
       (mapcat
@@ -173,8 +173,8 @@
           :fb-graph-node "page"
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
-          :response response-body
-          })
+          :response response-body})
+          
        response-body)
        ;else - no ids response
       (page-and-collect
@@ -184,15 +184,15 @@
           :fb-graph-node "page"
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
-          :response (if (not-empty path) {sanitized-path response-body} response-body)
-        }))))
+          :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
+        
 
 (defn- collect-result [response api-fn]
   (lazy-seq
    (if (not-empty (:data response))
      (cons (:data response)
            (if (some? (-> response :paging :next))
-             (collect-result (:body (api-fn (-> response :paging :next))) api-fn)) ))))
+             (collect-result (:body (api-fn (-> response :paging :next))) api-fn))))))
 
 
 (defn- get-request [access-token path & {:keys [query version]}]
@@ -202,8 +202,8 @@
     ;(println full-url)
     (collect-result
      (:body (request-fn full-url))
-     request-fn
-     )))
+     request-fn)))
+     
 
 (defn get-accounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/accounts" :version version)))

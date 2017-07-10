@@ -2,8 +2,8 @@
   (:require [keboola.docker.config :as sut]
             [clojure.test :as t :refer :all]
             [clojure.string :refer [trim ends-with? starts-with?]]
-            [keboola.test-utils.core :as test-utils]
-            ))
+            [keboola.test-utils.core :as test-utils]))
+            
 
 (def ^:dynamic *tmpdir* "")
 
@@ -28,9 +28,9 @@
          (trimmed? path)
          (ends-with? path "out/tables/")
          (.isDirectory (java.io.File. path))
-         (.exists (java.io.File. path))
-         ))))
+         (.exists (java.io.File. path))))))
+         
 (deftest test-parameters
-  (is (thrown? java.io.FileNotFoundException (sut/parameters)) ))
+  (is (thrown? java.io.FileNotFoundException (sut/parameters))))
 
 (use-fixtures :once setup-tmpdir)

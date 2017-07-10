@@ -3,8 +3,8 @@
             [clojure.data.csv :as cd-csv]
             [clojure.set :refer [rename-keys]]
             [clojure.spec :as s]
-            [clojure.string]
-            ))
+            [clojure.string]))
+            
 ; (mapcat #(conj '(:aa) %) (filter #(.contains (name %) "-") (keys {:a-id 2 :b 2}))) => (:a-id :aa)
 
 (s/fdef replace-dash
@@ -26,13 +26,13 @@
         :args (s/cat :coll (s/coll-of
                             (s/map-of keyword? (s/or :string string? :int int?) :max-count 20)
                             :max-count 20))
-:fn (fn [val]
-              (every? (fn [m] (every? #(or
-                                        (not (clojure.string/includes? (str %) "-"))
-                                        (clojure.string/includes? (str %) "_"))
-                                      (keys m)))
-                      (:ret val)))
-        :ret (s/coll-of (s/map-of keyword? (s/or :string string? :int int?))))
+ :fn (fn [val]
+         (every? (fn [m] (every? #(or
+                                   (not (clojure.string/includes? (str %) "-"))
+                                   (clojure.string/includes? (str %) "_"))
+                                 (keys m)))
+                 (:ret val)))
+     :ret (s/coll-of (s/map-of keyword? (s/or :string string? :int int?))))
 (defn underscorize [coll]
   (map #(rename-keys % (prepare-kw-map %)) coll))
 

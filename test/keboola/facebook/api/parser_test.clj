@@ -7,7 +7,7 @@
             [clojure.test.check.properties :as prop]))
 
 (deftest test-nested-object?
-  (is (test-and-check `sut/nested-object? 10))  )
+  (is (test-and-check `sut/nested-object? 10)))
 
 (deftest test-get-nested-object
   (is (test-and-check `sut/get-nested-objects 10)))
@@ -25,14 +25,14 @@
   (is (test-and-check `sut/filter-flatten-objects 20)))
 
 #_(deftest test-flatten-array
-  (is (test-and-check `sut/flatten-array 10)))
+   (is (test-and-check `sut/flatten-array 10)))
 
 #_(defspec test-unfold-nested-sequence 4
-  (prop/for-all [coll table-data-gen]
-                (let [test-value (sut/unfold-nested-sequence coll)]
-                  (and
-                     (not (reduced? test-value))
-                     (every? map? test-value)))))
+   (prop/for-all [coll table-data-gen]
+                 (let [test-value (sut/unfold-nested-sequence coll)]
+                   (and
+                      (not (reduced? test-value))
+                      (every? map? test-value)))))
 
 #_(defn foo-test [x]  x)
 #_(s/fdef foo-test :args (s/cat :x some?) :ret some?)

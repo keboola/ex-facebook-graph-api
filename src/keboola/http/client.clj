@@ -26,10 +26,10 @@
 
 (defn GET [url & rest]
   (let [response (apply make-request http/get url rest)]
-    (record-request response :get url rest)
+    (record-request response :get url rest)))
     ; (println "response" response)
-    ))
+    
 
-(defn POST [url & rest ]
-  (apply make-request http/post url rest)
-  )
+(defn POST [url & rest]
+  (apply make-request http/post url rest))
+  

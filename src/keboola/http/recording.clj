@@ -1,7 +1,7 @@
 (ns keboola.http.recording
   (:require [clojure.walk :refer [postwalk postwalk-demo]]
-            [cheshire.core :refer [generate-string]]
-            ))
+            [cheshire.core :refer [generate-string]]))
+            
 
 (def recording (atom '()))
 (def do-recording? (atom false))
@@ -12,12 +12,12 @@
 (defn turn-recording-off [] (reset! do-recording? false))
 
 (def VALID-CHARS
-(map char (concat (range 48 58) ; 0-9
-(range 66 91) ; A-Z
-(range 97 123)))) ; a-z
+ (map char (concat (range 48 58) ; 0-9
+            (range 66 91) ; A-Z
+            (range 97 123)))) ; a-z
 
 (defn random-char []
-(nth VALID-CHARS (rand (count VALID-CHARS))))
+ (nth VALID-CHARS (rand (count VALID-CHARS))))
 
 (defn random-str [length]
   (apply str (take length (repeatedly random-char))))
@@ -70,5 +70,5 @@
   (let [ns-str (str "(ns " namespace-name ")\n")
         recording-str (str "\n{\n" (prepare-recording token-to-replace) "\n}")]
     (with-open [w (clojure.java.io/writer path)]
-      (.write w (str ns-str (str "(def recorded " recording-str ")"))))
-    ))
+      (.write w (str ns-str (str "(def recorded " recording-str ")"))))))
+    

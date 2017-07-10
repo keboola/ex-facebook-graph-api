@@ -1,7 +1,7 @@
 (ns keboola.regression-tests.outdirs-check
   (:require [clojure.test :as t :refer :all]
             [cheshire.core :refer [parse-string]])
-  (:import java.io.File ))
+  (:import java.io.File))
 
 
 (defn list-dir [path]
@@ -29,8 +29,8 @@
         actual (parse-json actual-path)
         expected-pk (:primary_key expected)
         actual-pk (:primary_key actual)
-        actual-pk-set (set actual-pk)
-        ]
+        actual-pk-set (set actual-pk)]
+        
     (is (:incremental actual))
     (is (=  (:columns expected) (:columns actual)))
     (is (= (count actual-pk) (count actual-pk-set)))

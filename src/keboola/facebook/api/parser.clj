@@ -20,7 +20,7 @@
         :fn (fn [val]
               (if (= :simple (-> val :args :object first))
                 (= false (-> val :ret))
-                (= true (-> val :ret) ))))
+                (= true (-> val :ret)))))
 (defn nested-object?
   "Returns true if objet is map and contains :data keyword"
   [object]
@@ -32,8 +32,8 @@
      :name "summary"
      :data {:data [(:summary object)]}
      :parent-id (or (:id row) (:parent-id params))
-     :fb-graph-node (str (:fb-graph-node params) "_" object-name)
-     }))
+     :fb-graph-node (str (:fb-graph-node params) "_" object-name)}))
+     
 
 
 (s/fdef get-nested-objects
@@ -52,8 +52,8 @@
                                            {:name (name k)
                                             :data v
                                             :parent-id (or (:id row) (:parent-id params))
-                                            :fb-graph-node (str (:fb-graph-node params) "_" (name k))
-                                            }
+                                            :fb-graph-node (str (:fb-graph-node params) "_" (name k))}
+                                            
                                            (extract-summary (name k) v row params)) m))
                                  [] row)]
        (concat memo (keep identity objects))
@@ -115,8 +115,8 @@
         :ret (s/map-of keyword? ::ds/table-value))
 (defn filter-scalars [row]
   (into {} (filter (fn [[k v]]
-                     (and (-> v map? not) (-> v sequential? not))
-                     ) row)))
+                     (and (-> v map? not) (-> v sequential? not)))
+                   row)))
 
 (s/fdef filter-flatten-objects
         :args (s/cat :row ::ds/complex-object)

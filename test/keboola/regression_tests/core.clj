@@ -12,15 +12,15 @@
   (:import java.io.File))
 
 #_(deftest foo-test
-  (with-global-fake-routes-in-isolation
-    apicalls
-    (println (GET "https://google.com/apps/ab" :query-params {:path "feed",
-       :fields
-       "caption,message,created_time,type,description,likes{name,username},comments{message,created_time,from,likes{name,username}}",
-       :ids "177057932317550",
-       :access_token "XXTOKENXX",
-       :since "",
-       :until ""}))))
+   (with-global-fake-routes-in-isolation
+     apicalls
+     (println (GET "https://google.com/apps/ab" :query-params {:path "feed",
+                                                               :fields
+                                                               "caption,message,created_time,type,description,likes{name,username},comments{message,created_time,from,likes{name,username}}",
+                                                               :ids "177057932317550",
+                                                               :access_token "XXTOKENXX",
+                                                               :since "",
+                                                               :until ""}))))
 
 (defn create-test-file [dir-path ns-name recording-ns test-name]
   (let [test-file-path (str dir-path "/" "test" "_" test-name ".clj")
@@ -59,8 +59,8 @@
          ns-name (str "keboola.regression-tests." clj-compliant-name)
          dir-path (str "test/keboola/regression_tests/" dirname)
          recording-path (str "test/keboola/regression_tests/" dirname "/apicalls.clj")
-         recording-ns (str ns-name ".apicalls")
-         ]
+         recording-ns (str ns-name ".apicalls")]
+         
      (turn-recording-on)
      (clean-test-directory dir-path)
      (reset-recording)
@@ -71,5 +71,5 @@
      (println "creating test file " clj-compliant-name)
      (create-test-file dir-path ns-name recording-ns clj-compliant-name)
      (turn-recording-off)
-     (if anonymize-token? (anonymize-config-token dir-path))
-     )))
+     (if anonymize-token? (anonymize-config-token dir-path)))))
+     

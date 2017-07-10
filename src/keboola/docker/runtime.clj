@@ -1,25 +1,25 @@
 (ns keboola.docker.runtime
-  (:require [cheshire.core :refer [generate-string]])
-  )
+  (:require [cheshire.core :refer [generate-string]]))
+  
 
 (defn exit [status]
-  (System/exit status)
-  )
+  (System/exit status))
+  
 
 (defn log-error [& error-msg]
   (binding [*out* *err*]
-    (apply println error-msg))
-  )
+    (apply println error-msg)))
+  
 
 (defn user-error [error-msg]
   (log-error error-msg)
-  (exit 1)
-  )
+  (exit 1))
+  
 
 (defn app-error [error-msg]
   (log-error error-msg)
-  (exit 2)
-  )
+  (exit 2))
+  
 
 (defn log-strings [& strings]
   (apply println strings))

@@ -33,8 +33,8 @@
        (str s#))))
 
 (defn prints-error? [error-fn & params]
-  (is (= (clojure.string/trim (with-err-str (apply error-fn params))) (clojure.string/join " " params)))
-  )
+  (is (= (clojure.string/trim (with-err-str (apply error-fn params))) (clojure.string/join " " params))))
+  
 
 (defn prints-msg? [print-fn & params]
   (is (= (clojure.string/trim (with-out-str (apply print-fn params))) (clojure.string/join " " params))))
@@ -67,9 +67,9 @@
 
 
 (defn
-^{ :doc "Deletes the given directory even if it contains files or subdirectories. This function will attempt to delete
+ ^{ :doc "Deletes the given directory even if it contains files or subdirectories. This function will attempt to delete
 all of the files and directories in the given directory first, before deleting the directory. If the directory cannot be
-deleted, this function aborts and returns nil. If the delete finishes successfully, then this function returns true." }
+deleted, this function aborts and returns nil. If the delete finishes successfully, then this function returns true."}
   recursive-delete [directory]
   (if (.isDirectory directory)
     (when (reduce #(and %1 (recursive-delete %2)) true (.listFiles directory))

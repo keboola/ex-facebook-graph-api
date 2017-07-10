@@ -1,7 +1,7 @@
 (ns keboola.docker.config
   (:require [cheshire.core :refer [parse-string]]
-            [clojure.string :refer [trim]]
-            ))
+            [clojure.string :refer [trim]]))
+            
 
 (def default-dir "/data/")
 
@@ -30,16 +30,16 @@
    (out-dir-path "./"))
   ([datadir]
    (let [result (mkdirp (str (check-path (trim datadir)) "out/tables/"))]
-     result
-     ))
-  )
+     result)))
+     
+  
 (defn config [& datadir]
   (apply load-config datadir))
 
 
 (defn parameters [& datadir]
-  (:parameters (apply load-config datadir))
-  )
+  (:parameters (apply load-config datadir)))
+  
 
 (defn app-access-token [& datadir]
   (let
