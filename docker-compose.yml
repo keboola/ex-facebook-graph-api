@@ -3,7 +3,7 @@ services:
   app:
     build: .
     entrypoint: "boot"
-    image: keboola/ex-facebook-insights
+    image: keboola/ex-facebook-graph-api
     volumes:
       - ./:/code
     ports:
