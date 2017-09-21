@@ -9,13 +9,15 @@
 
 (defn accounts [credentials config]
   (let [token (:token credentials)
-        accounts (mapv #(dissoc % :access_token) (request/get-accounts token))]
+        version (-> config :parameters :api-version)
+        accounts (mapv #(dissoc % :access_token) (request/get-accounts token :version version))]
     (log (generate-string accounts))))
 
 
 (defn adaccounts [credentials config]
   (let [token (:token credentials)
-        accounts (request/get-adaccounts token)]
+        version (-> config :parameters :api-version)
+        accounts (request/get-adaccounts token :version version)]
     (log (generate-string accounts))))
 
 (defn log-debug-token [app-token credentials prepend-message]
@@ -27,4 +29,3 @@
        (log (str prepend-message (generate-string result)))))
    (catch Object e
      (log (generate-string {:message "Failed to log token info" :error e})))))
-   
