@@ -21,7 +21,7 @@ build-image:
 
 # runs extractor docker container - docker-runner command
 run-docker:
-	docker run --rm -i -t -v $(DATADIR):/data keboola/ex-facebook-insights
+	docker run --rm -i -t -v $(DATADIR):/data keboola/ex-facebook-graph-api
 
 # runs extractor a compiled jar file as java app. Built via boot build
 # command or make build-jar command.
@@ -32,6 +32,8 @@ run-jar:
 run-boot:
 	boot run-insights --args "-d $(DATADIR)"
 
+docker-test:
+	docker-compose run app test
 
 # runs jar with visual vm profiler. Needs visualVM to be running with Start up profiler plugin
 run-jar-agent:
