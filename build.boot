@@ -21,8 +21,8 @@
 (require '[keboola.regression-tests.core])
 (require '[adzerk.boot-test :refer :all])
 
-(deftask run-insights
-  "run insights extractor"
+(deftask run
+  "run extractor"
   [x args VAL  str "arguments string for main- function"]
   (if-not args
     (do (boot.util/fail "arguments string x is requried. ")
@@ -39,16 +39,16 @@ record api calls, create regression tests with recrded api calls and compare res
         (*usage*)))
   ((resolve 'keboola.regression-tests.core/generate-test) data (not skip-token)))
 
-(deftask build-insights
-  "Builds an uberjar of insights extractor that can be run with java -jar"
+(deftask build
+  "Builds an uberjar extractor that can be run with java -jar"
   []
   (comp
    (aot :all true)
-   (pom :project 'exinsights
-        :version "0.0.1")
+   (pom :project 'ex-fb-graph-api
+        :version "1.0")
    (uber)
    (jar :main 'keboola.facebook.insights-extractor.core)
-   (target :dir #{"targetinsights"})))
+   (target :dir #{"target"})))
 
 (deftask start-docker-repl
   "run repl server on 1111 port"

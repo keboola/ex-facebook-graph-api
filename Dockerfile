@@ -6,6 +6,6 @@ ENV BOOT_CLOJURE_VERSION=1.9.0-beta1
 
 ADD . /code
 WORKDIR /code
-RUN boot build-insights
+RUN boot build
 EXPOSE 1111
-ENTRYPOINT ["java", "-jar", "-Xmx1g","targetinsights/exinsights-0.0.1.jar", "-d" , "/data/"]
+ENTRYPOINT ["java", "-jar", "-Xmx1g","target/ex-fb-graph-api-1.0.jar", "-d" , "/data/"]

@@ -13,11 +13,11 @@ bash:
 
 # builds java app jar file - result is targetinsights/project.jar file
 build-jar:
-	boot build-insights
+	boot build
 
 # build docker image from dockerfile
 build-image:
-	docker build -t keboola/ex-facebook-insights .
+	docker build -t keboola/ex-facebook-graph-api .
 
 # runs extractor docker container - docker-runner command
 run-docker:
@@ -26,15 +26,15 @@ run-docker:
 # runs extractor a compiled jar file as java app. Built via boot build
 # command or make build-jar command.
 run-jar:
-	java -Xmx1g -jar targetinsights/exinsights-0.0.1.jar -d $(DATADIR)
+	java -Xmx1g -jar targetinsights/ex-fb-graph-api-1.0.jar -d $(DATADIR)
 
 # runs extractor directly from boot ie runs as clojure program
 run-boot:
-	boot run-insights --args "-d $(DATADIR)"
+	boot run --args "-d $(DATADIR)"
 
 docker-test:
 	docker-compose run app test
 
 # runs jar with visual vm profiler. Needs visualVM to be running with Start up profiler plugin
 run-jar-agent:
-	java -Xmx256m -agentpath:/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib/deployed/jdk16/mac/libprofilerinterface.jnilib=/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib,5140 -jar targetinsights/project.jar -d tmp/
+	java -Xmx256m -agentpath:/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib/deployed/jdk16/mac/libprofilerinterface.jnilib=/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib,5140 -jar target/ex-fb-graph-api-1.0.jar -d tmp/
