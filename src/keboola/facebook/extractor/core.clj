@@ -17,7 +17,7 @@
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
 
 (defn usage [options-summary]
-  (->> ["Keboola Facebook Insights Extractor"
+  (->> ["Keboola Facebook Graph Api Extractor"
         "Usage: program-name options"
         "Options:"
         options-summary]
