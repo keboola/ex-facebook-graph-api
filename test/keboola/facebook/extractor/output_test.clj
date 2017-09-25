@@ -1,4 +1,4 @@
-(ns keboola.facebook.insights-extractor.output-test
+(ns keboola.facebook.extractor.output-test
   (:require [clojure.test :refer :all]
             [keboola.facebook.extractor.output :as sut]))
 
