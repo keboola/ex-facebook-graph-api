@@ -1,4 +1,4 @@
-(ns keboola.facebook.insights-extractor.sync-actions
+(ns keboola.facebook.extractor.sync-actions
   (:require [keboola.facebook.api.request :as request]
             [cheshire.core :refer [generate-string]]
             [slingshot.slingshot :refer [try+ throw+]]

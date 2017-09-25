@@ -9,7 +9,7 @@
              :refer
              [app-error log log-error-and-exit log-strings user-error]]
             [keboola.facebook.extractor.query :as query]
-            [keboola.facebook.insights-extractor.sync-actions :as sync-actions]
+            [keboola.facebook.extractor.sync-actions :as sync-actions]
             [keboola.http.client :refer [fb-requests-count]]
             [keboola.utils.json-to-csv :as csv]
             [slingshot.slingshot :refer [throw+ try+]]))
