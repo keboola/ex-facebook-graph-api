@@ -1,9 +1,9 @@
 (ns keboola.regression-tests.feed.test-feed
   (:require [clj-http.fake :refer :all]
             [clojure.test :as t :refer :all]
+            [keboola.facebook.extractor.core :refer [prepare-and-run]]
             [keboola.facebook.extractor.output :refer [reset-columns-map]]
             [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
-            [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
             [keboola.regression-tests.feed.apicalls :as apicalls]
             [keboola.regression-tests.outdirs-check :as outdirs-check]
             [keboola.test-utils.core :as test-utils]))

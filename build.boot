@@ -17,7 +17,7 @@
                  [slingshot "0.12.2"]
                  [clj-time "0.12.2"]])
 
-(require '[keboola.facebook.insights-extractor.core])
+(require '[keboola.facebook.extractor.core])
 (require '[keboola.regression-tests.core])
 (require '[adzerk.boot-test :refer :all])
 
@@ -27,7 +27,7 @@
   (if-not args
     (do (boot.util/fail "arguments string x is requried. ")
         (*usage*)))
-  ((resolve 'keboola.facebook.insights-extractor.core/-main) args))
+  ((resolve 'keboola.facebook.extractor.core/-main) args))
 
 (deftask generate-test
   "given data dir with config.json, this task runs extraktor,
@@ -47,7 +47,7 @@ record api calls, create regression tests with recrded api calls and compare res
    (pom :project 'ex-fb-graph-api
         :version "1.0")
    (uber)
-   (jar :main 'keboola.facebook.insights-extractor.core)
+   (jar :main 'keboola.facebook.extractor.core)
    (target :dir #{"target"})))
 
 (deftask start-docker-repl

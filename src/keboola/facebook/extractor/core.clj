@@ -1,4 +1,4 @@
-(ns keboola.facebook.insights-extractor.core
+(ns keboola.facebook.extractor.core
   (:gen-class)
   (:require [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]

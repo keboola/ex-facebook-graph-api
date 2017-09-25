@@ -4,8 +4,8 @@
             [clojure.test :as t :refer :all]
             clostache.parser
             [keboola.docker.config :refer [load-config user-credentials]]
+            [keboola.facebook.extractor.core :refer [prepare-and-run]]
             [keboola.facebook.extractor.output :refer [reset-columns-map]]
-            [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
             [keboola.http.client :refer [GET]]
             [keboola.http.recording
              :refer
