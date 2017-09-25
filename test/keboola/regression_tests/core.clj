@@ -1,14 +1,20 @@
 (ns keboola.regression-tests.core
-  (:require [keboola.http.client :refer [GET]]
-            [keboola.http.recording :refer [reset-recording recording save-current-recording turn-recording-on turn-recording-off]]
-            [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
-            [keboola.docker.config :refer [user-credentials load-config]]
-            [keboola.facebook.insights-extractor.output :refer [reset-columns-map]]
-            [keboola.test-utils.core :as test-utils]
+  (:require [cheshire.core :refer [generate-stream]]
+            [clj-http.fake :refer [with-global-fake-routes-in-isolation]]
             [clojure.test :as t :refer :all]
-            [clostache.parser]
-            [cheshire.core :refer [generate-stream]]
-            [clj-http.fake :refer [with-global-fake-routes-in-isolation]])
+            clostache.parser
+            [keboola.docker.config :refer [load-config user-credentials]]
+            [keboola.facebook.extractor.output :refer [reset-columns-map]]
+            [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
+            [keboola.http.client :refer [GET]]
+            [keboola.http.recording
+             :refer
+             [recording
+              reset-recording
+              save-current-recording
+              turn-recording-off
+              turn-recording-on]]
+            [keboola.test-utils.core :as test-utils])
   (:import java.io.File))
 
 #_(deftest foo-test

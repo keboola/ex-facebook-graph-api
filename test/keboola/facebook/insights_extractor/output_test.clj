@@ -1,6 +1,6 @@
 (ns keboola.facebook.insights-extractor.output-test
-  (:require [keboola.facebook.insights-extractor.output :as sut]
-            [clojure.test :refer :all]))
+  (:require [clojure.test :refer :all]
+            [keboola.facebook.extractor.output :as sut]))
 
 (defn test-pk [value expected]
   (let [complete-expected (conj expected "parent_id")]

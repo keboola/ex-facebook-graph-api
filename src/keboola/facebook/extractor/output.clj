@@ -1,4 +1,4 @@
-(ns keboola.facebook.insights-extractor.output
+(ns keboola.facebook.extractor.output
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
             [keboola.docker.config :refer [mkdirp]]

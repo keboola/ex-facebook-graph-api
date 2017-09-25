@@ -1,12 +1,11 @@
 (ns keboola.regression-tests.campaignsinsights.test-campaignsinsights
-  (:require [keboola.regression-tests.campaignsinsights.apicalls :as apicalls]
+  (:require [clj-http.fake :refer :all]
             [clojure.test :as t :refer :all]
-            [keboola.regression-tests.outdirs-check :as outdirs-check]
-            [keboola.test-utils.core :as test-utils]
-            [keboola.facebook.insights-extractor.output :refer [reset-columns-map]]
+            [keboola.facebook.extractor.output :refer [reset-columns-map]]
             [keboola.facebook.insights-extractor.core :refer [prepare-and-run]]
-            )
-  (:use clj-http.fake))
+            [keboola.regression-tests.campaignsinsights.apicalls :as apicalls]
+            [keboola.regression-tests.outdirs-check :as outdirs-check]
+            [keboola.test-utils.core :as test-utils]))
 
 (deftest campaignsinsights-test
   (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "campaignsinsights"))]

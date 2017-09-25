@@ -11,7 +11,7 @@ repl:
 bash:
 	docker-compose run --rm --entrypoint /bin/bash app
 
-# builds java app jar file - result is targetinsights/project.jar file
+# builds java app jar file - result is targe/project.jar file
 build-jar:
 	boot build
 
@@ -26,7 +26,7 @@ run-docker:
 # runs extractor a compiled jar file as java app. Built via boot build
 # command or make build-jar command.
 run-jar:
-	java -Xmx1g -jar targetinsights/ex-fb-graph-api-1.0.jar -d $(DATADIR)
+	java -Xmx1g -jar target/ex-fb-graph-api-1.0.jar -d $(DATADIR)
 
 # runs extractor directly from boot ie runs as clojure program
 run-boot:

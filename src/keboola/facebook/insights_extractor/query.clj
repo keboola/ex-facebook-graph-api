@@ -1,10 +1,10 @@
 (ns keboola.facebook.insights-extractor.query
   (:gen-class)
-  (:require [keboola.facebook.api.request :as request]
-            [keboola.facebook.insights-extractor.output :as output]
-            [keboola.docker.runtime :as runtime]
+  (:require [clojure.core.async :as async]
             [clojure.string :as s]
-            [clojure.core.async :as async]))
+            [keboola.docker.runtime :as runtime]
+            [keboola.facebook.api.request :as request]
+            [keboola.facebook.extractor.output :as output]))
 
 (defn- run-and-write [token out-dir prefix query version]
   (let [nested-data (request/nested-request token query :version version)
