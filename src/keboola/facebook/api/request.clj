@@ -1,5 +1,5 @@
 (ns keboola.facebook.api.request
-  (:require   [clojure.spec :as s]
+  (:require   [clojure.spec.alpha :as s]
               [keboola.facebook.api.parser :as parser]
               [keboola.docker.runtime :refer [log-strings app-error log-error]]
               [slingshot.slingshot :refer [try+ throw+]]
@@ -117,14 +117,14 @@
               :fb-graph-node (:fb-graph-node params)
               :name (:table-name params)
               :data new-response}]
-              
+
             (contains? new-response (keyword ex-account-id))
             [{
               :parent-id ex-account-id
               :fb-graph-node top-node
               :name top-node
               :data new-response}]
-              
+
             :else
             (app-error (str "Unknown page structure:" (keys new-response) "next-page" next-page-url (dissoc params :body-data :response)))))))
 
@@ -162,7 +162,7 @@
         response (make-get-request full-url query-params)
         response-body (:body response)
         sanitized-path (keyword (string/replace path #"/" "_"))]
-        
+
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
     (if (some? ids)
       (mapcat
@@ -174,7 +174,7 @@
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
           :response response-body})
-          
+
        response-body)
        ;else - no ids response
       (page-and-collect
@@ -185,7 +185,7 @@
           :table-name "page"
           :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
           :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
-        
+
 
 (defn- collect-result [response api-fn]
   (lazy-seq
@@ -203,7 +203,7 @@
     (collect-result
      (:body (request-fn full-url))
      request-fn)))
-     
+
 
 (defn get-accounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/accounts" :version version)))

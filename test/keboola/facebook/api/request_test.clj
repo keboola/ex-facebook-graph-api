@@ -1,7 +1,7 @@
 (ns keboola.facebook.api.request-test
   (:require [keboola.facebook.api.request :as sut]
             [keboola.test-utils.core :refer [test-and-check]]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [slingshot.slingshot :refer [try+ throw+]]
             [clojure.test :as t :refer :all])
   (:use clj-http.fake))
@@ -20,7 +20,7 @@
     (is (= (testfn (str stemurl params) "25") (str stemurl params "&limit=25")))
     (is (= (testfn (str stemurl paramswithlimit) "25") (str stemurl params "&limit=25&ccc=dd")))
     (is (= (testfn (str stemurl multilimitparams) "25") (str stemurl paramswithlimit "&limit=25")))))
-    
+
 
 (def reduce-data-response
   {:request-time 21463, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 500, :length 108, :body "{\"error\":{\"code\":1,\"message\":\"Please reduce the amount of data you're asking for, then retry your request\"}}"})
@@ -36,7 +36,7 @@
 
 (def success-response
   {:request-time 30, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :headers {}, :orig-content-encoding nil, :status 200, :length 77, :body "{}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]})
-  
+
 
 (def error-count (atom 0))
 (defn set-error-count [new-count] (reset! error-count new-count))

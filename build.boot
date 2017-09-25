@@ -2,7 +2,7 @@
 (set-env!
  :source-paths #{"src" "test"}
  :dependencies '[
-                 [org.clojure/clojure "1.9.0-alpha14"]
+                 [org.clojure/clojure "1.9.0-beta1"]
                  [cheshire "5.6.3"]
                  [clj-http "3.3.0"]
                  [clojure-csv/clojure-csv "2.0.1"]
@@ -11,7 +11,7 @@
                  [semantic-csv "0.1.0"]
                  [org.clojure/data.csv "0.1.3"]
                  [org.clojure/test.check "0.9.0"]
-                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/core.async "0.3.443"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
                  [clj-http-fake "1.0.3"]
                  [slingshot "0.12.2"]
@@ -55,7 +55,7 @@ record api calls, create regression tests with recrded api calls and compare res
   []
   (require 'boot.repl)
   (swap! boot.repl/*default-dependencies*
-         concat '[[cider/cider-nrepl "0.15.0-SNAPSHOT"]])
+         concat '[[cider/cider-nrepl "0.15.1"]])
   (swap! boot.repl/*default-middleware*
          conj 'cider.nrepl/cider-middleware)
   (repl :bind "0.0.0.0" :port 1111)
