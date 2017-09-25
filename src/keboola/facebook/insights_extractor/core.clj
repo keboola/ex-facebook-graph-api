@@ -1,15 +1,18 @@
 (ns keboola.facebook.insights-extractor.core
   (:gen-class)
-  (:require [clojure.tools.cli :refer [parse-opts]]
+  (:require [clojure.string :as string]
+            [clojure.tools.cli :refer [parse-opts]]
             [keboola.docker.config :as docker-config]
-            [keboola.http.client :refer [fb-requests-count]]
-            [keboola.docker.runtime :as docker-runtime :refer [log-error-and-exit user-error app-error]]
-            [keboola.facebook.insights-extractor.query :as query]
+            [keboola.docker.runtime
+             :as
+             docker-runtime
+             :refer
+             [app-error log log-error-and-exit log-strings user-error]]
+            [keboola.facebook.extractor.query :as query]
             [keboola.facebook.insights-extractor.sync-actions :as sync-actions]
+            [keboola.http.client :refer [fb-requests-count]]
             [keboola.utils.json-to-csv :as csv]
-            [keboola.docker.runtime :refer [log log-strings]]
-            [slingshot.slingshot :refer [try+ throw+]]
-            [clojure.string :as string]))
+            [slingshot.slingshot :refer [throw+ try+]]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
 

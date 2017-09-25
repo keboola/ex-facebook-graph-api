@@ -1,4 +1,4 @@
-(ns keboola.facebook.insights-extractor.query
+(ns keboola.facebook.extractor.query
   (:gen-class)
   (:require [clojure.core.async :as async]
             [clojure.string :as s]
