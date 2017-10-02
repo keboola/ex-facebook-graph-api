@@ -49,14 +49,34 @@
         (test-utils/delete-recursively f)
         (clojure.java.io/delete-file f)))))
 
-(defn anonymize-config-token [dirpath]
+(defn save-token-to-config! [dirpath token]
   (let [config (load-config dirpath)
         oauth-data-path [:authorization :oauth_api :credentials :#data]
-        anonymized-oauth-data "{\"token\":\"XXTOKENXX\"}"
+        anonymized-oauth-data (str "{\"token\":\"" token "\"}")
         anonymized-config (assoc-in config oauth-data-path anonymized-oauth-data)
         path (str dirpath "/config.json")]
-    (println "anonymizing token in" dirpath)
+    (println "saving token" (subs token 0 2) " into " dirpath)
     (generate-stream anonymized-config (clojure.java.io/writer path) {:pretty true})))
+
+(defn anonymize-config-token [dirpath]
+  (save-token-to-config! dirpath "XXTOKENXX"))
+
+(defn get-token-from-env [component-id]
+  (let [env-name
+        ({
+          "keboola.ex-facebook" "FB_TOKEN"
+          "keboola.ex-facebook-ads" "FB_ADS_TOKEN"
+          } component-id)]
+    (System/getenv env-name)))
+
+(defn save-config-token-from-env [dirpath]
+  (let [config (load-config dirpath)
+        component-id (get-in config [:authorization :oauth_api :id])
+        token (get-token-from-env component-id)]
+    (if token
+      (do (println "Read token from env for " component-id)
+          (save-token-to-config! dirpath token))
+      (println "No token read for" component-id))))
 
 (defn generate-test
   ([dirname] (generate-test dirname true))
@@ -78,3 +98,10 @@
      (create-test-file dir-path ns-name recording-ns clj-compliant-name)
      (turn-recording-off)
      (if anonymize-token? (anonymize-config-token dir-path)))))
+
+(defn regenerate-all-snapshot-dirs []
+  (let [snapshot-dirs (filter #(.isDirectory %) (.listFiles (File. "test/keboola/snapshots")))
+        dir-names (map #(.getName %) snapshot-dirs)]
+    (println "found snapshot dirs:" dir-names)
+    (doseq [dname dir-names]
+      (generate-test dname))))

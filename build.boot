@@ -39,6 +39,9 @@ record api calls, create snapshot tests with recrded api calls and compare resul
         (*usage*)))
   ((resolve 'keboola.snapshots.core/generate-test) data (not skip-token)))
 
+(deftask regenerate-snapshots []
+  ((resolve 'keboola.snapshots.core/regenerate-all-snapshot-dirs)))
+
 (deftask build
   "Builds an uberjar extractor that can be run with java -jar"
   []

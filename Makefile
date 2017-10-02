@@ -2,6 +2,8 @@
 # Makefile commands to manage and simplify development
 
 DATADIR = ${PWD}/tmp/
+-include .fbtokens-env
+export
 
 #starts clojure repl in a docker container
 repl:
@@ -31,6 +33,8 @@ run-jar:
 # runs extractor directly from boot ie runs as clojure program
 run-boot:
 	boot run-extractor --args "-d $(DATADIR)"
+snapshots-generate:
+	boot regenerate-snapshots
 
 docker-test:
 	docker-compose run app test
