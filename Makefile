@@ -2,6 +2,7 @@
 # Makefile commands to manage and simplify development
 
 DATADIR = ${PWD}/tmp/
+FILTER =".*"
 -include .fbtokens-env
 export
 
@@ -33,8 +34,8 @@ run-jar:
 # runs extractor directly from boot ie runs as clojure program
 run-boot:
 	boot run-extractor --args "-d $(DATADIR)"
-snapshots-generate:
-	boot regenerate-snapshots
+regenerate-snapshots:
+	boot regenerate-snapshots "-f$(FILTER)"
 
 docker-test:
 	docker-compose run app test
