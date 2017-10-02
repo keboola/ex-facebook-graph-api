@@ -52,11 +52,11 @@
 
 (defn get-token-from-env [component-id]
   (let [env-name
-        ({
+        (get {
           "keboola.ex-facebook" "FB_TOKEN"
           "keboola.ex-facebook-ads" "FB_ADS_TOKEN"
           } component-id)]
-    (System/getenv env-name)))
+    (if env-name (System/getenv env-name))))
 
 (defn save-config-token-from-env [dirpath]
   (let [config (load-config dirpath)
@@ -80,6 +80,7 @@
      (clean-test-directory dir-path)
      (reset-recording)
      (reset-columns-map)
+     (save-config-token-from-env dir-path)
      (prepare-and-run dir-path)
      (println "saving apicalls in " dirname)
      (save-current-recording recording-path recording-ns (:token (user-credentials dir-path)))
