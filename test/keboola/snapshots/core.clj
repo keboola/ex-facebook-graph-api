@@ -4,6 +4,7 @@
             [clojure.test :as t :refer :all]
             clostache.parser
             [keboola.docker.config :refer [load-config user-credentials]]
+            [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
             [keboola.facebook.extractor.core :refer [prepare-and-run]]
             [keboola.facebook.extractor.output :refer [reset-columns-map]]
             [keboola.http.client :refer [GET]]
@@ -75,7 +76,7 @@
          dir-path (str "test/keboola/snapshots/" dirname)
          recording-path (str "test/keboola/snapshots/" dirname "/apicalls.clj")
          recording-ns (str ns-name ".apicalls")]
-
+     (disable-log-token)
      (turn-recording-on)
      (clean-test-directory dir-path)
      (reset-recording)
