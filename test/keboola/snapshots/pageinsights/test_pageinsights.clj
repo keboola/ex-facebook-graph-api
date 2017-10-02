@@ -1,22 +1,22 @@
-(ns keboola.regression-tests.postsinsights.test-postsinsights
+(ns keboola.snapshots.pageinsights.test-pageinsights
   (:require [clj-http.fake :refer :all]
             [clojure.test :as t :refer :all]
             [keboola.facebook.extractor.core :refer [prepare-and-run]]
             [keboola.facebook.extractor.output :refer [reset-columns-map]]
             [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
-            [keboola.regression-tests.outdirs-check :as outdirs-check]
-            [keboola.regression-tests.postsinsights.apicalls :as apicalls]
+            [keboola.snapshots.outdirs-check :as outdirs-check]
+            [keboola.snapshots.pageinsights.apicalls :as apicalls]
             [keboola.test-utils.core :as test-utils]))
 
-(deftest postsinsights-test
-  (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "postsinsights"))]
+(deftest pageinsights-test
+  (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "pageinsights"))]
     (disable-log-token)
     (println "testing dir:" tmp-dir)
-    (println "expected dir:" "test/keboola/regression_tests/postsinsights")
-    (test-utils/copy-config-tmp "test/keboola/regression_tests/postsinsights" tmp-dir)
+    (println "expected dir:" "test/keboola/snapshots/pageinsights")
+    (test-utils/copy-config-tmp "test/keboola/snapshots/pageinsights" tmp-dir)
     (with-global-fake-routes-in-isolation
       apicalls/recorded
       (reset-columns-map)
       (prepare-and-run tmp-dir)
-      (outdirs-check/is-equal "test/keboola/regression_tests/postsinsights" tmp-dir)
+      (outdirs-check/is-equal "test/keboola/snapshots/pageinsights" tmp-dir)
       )))

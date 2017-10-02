@@ -1,4 +1,4 @@
-(ns keboola.regression-tests.outdirs-check
+(ns keboola.snapshots.outdirs-check
   (:require [clojure.test :as t :refer :all]
             [cheshire.core :refer [parse-string]])
   (:import java.io.File))

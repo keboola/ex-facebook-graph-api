@@ -30,7 +30,7 @@ run-jar:
 
 # runs extractor directly from boot ie runs as clojure program
 run-boot:
-	boot run --args "-d $(DATADIR)"
+	boot run-extractor --args "-d $(DATADIR)"
 
 docker-test:
 	docker-compose run app test

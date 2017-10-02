@@ -1,4 +1,4 @@
-(ns keboola.regression-tests.core
+(ns keboola.snapshots.core
   (:require [cheshire.core :refer [generate-stream]]
             [clj-http.fake :refer [with-global-fake-routes-in-isolation]]
             [clojure.test :as t :refer :all]
@@ -35,7 +35,7 @@
                   :apicalls-ns recording-ns
                   :test-name test-name
                   :dir-path dir-path}
-        test-content-template (slurp "test/keboola/regression_tests/template.mustache")
+        test-content-template (slurp "test/keboola/snapshots/template.mustache")
         test-file-content (clostache.parser/render test-content-template template)]
     (with-open [w (clojure.java.io/writer test-file-path)]
       (.write w test-file-content))))
@@ -62,11 +62,11 @@
   ([dirname] (generate-test dirname true))
   ([dirname anonymize-token?]
    (let [clj-compliant-name (clojure.string/replace dirname #"_" "-")
-         ns-name (str "keboola.regression-tests." clj-compliant-name)
-         dir-path (str "test/keboola/regression_tests/" dirname)
-         recording-path (str "test/keboola/regression_tests/" dirname "/apicalls.clj")
+         ns-name (str "keboola.snapshots." clj-compliant-name)
+         dir-path (str "test/keboola/snapshots/" dirname)
+         recording-path (str "test/keboola/snapshots/" dirname "/apicalls.clj")
          recording-ns (str ns-name ".apicalls")]
-         
+
      (turn-recording-on)
      (clean-test-directory dir-path)
      (reset-recording)
@@ -78,4 +78,3 @@
      (create-test-file dir-path ns-name recording-ns clj-compliant-name)
      (turn-recording-off)
      (if anonymize-token? (anonymize-config-token dir-path)))))
-     

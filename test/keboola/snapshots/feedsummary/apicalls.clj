@@ -1,4 +1,4 @@
-(ns keboola.regression-tests.feedsummary.apicalls)
+(ns keboola.snapshots.feedsummary.apicalls)
 (def recorded 
 {
 {:method :get,

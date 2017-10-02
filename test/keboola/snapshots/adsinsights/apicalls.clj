@@ -1,4 +1,4 @@
-(ns keboola.regression-tests.adsinsights.apicalls)
+(ns keboola.snapshots.adsinsights.apicalls)
 (def recorded 
 {
 {:method :get,

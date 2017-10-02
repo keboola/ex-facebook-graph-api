@@ -18,10 +18,10 @@
                  [clj-time "0.12.2"]])
 
 (require '[keboola.facebook.extractor.core])
-(require '[keboola.regression-tests.core])
+(require '[keboola.snapshots.core])
 (require '[adzerk.boot-test :refer :all])
 
-(deftask run
+(deftask run-extractor
   "run extractor"
   [x args VAL  str "arguments string for main- function"]
   (if-not args
@@ -31,13 +31,13 @@
 
 (deftask generate-test
   "given data dir with config.json, this task runs extraktor,
-record api calls, create regression tests with recrded api calls and compare result dirs"
-  [d data VAL str "name of directory in test/keboola/regresion_tests containing config.json"
+record api calls, create snapshot tests with recrded api calls and compare result dirs"
+  [d data VAL str "name of directory in test/keboola/snapshots containing config.json"
    s skip-token    bool "skip token anonymization in config.json"]
   (if-not data
     (do (boot.util/fail "arguments string d is requried. ")
         (*usage*)))
-  ((resolve 'keboola.regression-tests.core/generate-test) data (not skip-token)))
+  ((resolve 'keboola.snapshots.core/generate-test) data (not skip-token)))
 
 (deftask build
   "Builds an uberjar extractor that can be run with java -jar"
