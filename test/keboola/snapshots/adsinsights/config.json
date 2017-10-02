@@ -25,7 +25,7 @@
   },
   "authorization" : {
     "oauth_api" : {
-      "id" : "{OAUTH_API_ID}",
+      "id" : "keboola.ex-facebook-ads",
       "credentials" : {
         "id" : "main",
         "authorizedFor" : "Myself",
