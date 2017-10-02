@@ -1,12 +1,13 @@
 (ns keboola.snapshots.feedsummary.test-feedsummary
-  (:require [clj-http.fake :refer :all]
+  (:require [keboola.snapshots.feedsummary.apicalls :as apicalls]
             [clojure.test :as t :refer :all]
-            [keboola.facebook.extractor.core :refer [prepare-and-run]]
-            [keboola.facebook.extractor.output :refer [reset-columns-map]]
-            [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
-            [keboola.snapshots.feedsummary.apicalls :as apicalls]
             [keboola.snapshots.outdirs-check :as outdirs-check]
-            [keboola.test-utils.core :as test-utils]))
+            [keboola.test-utils.core :as test-utils]
+            [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
+            [keboola.facebook.extractor.output :refer [reset-columns-map]]
+            [keboola.facebook.extractor.core :refer [prepare-and-run]]
+            )
+  (:use clj-http.fake))
 
 (deftest feedsummary-test
   (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "feedsummary"))]
