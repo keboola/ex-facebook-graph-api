@@ -2,9 +2,10 @@
   (:require [semantic-csv.core :as csv]
             [clojure.data.csv :as cd-csv]
             [clojure.set :refer [rename-keys]]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s
+             ]
             [clojure.string]))
-            
+
 ; (mapcat #(conj '(:aa) %) (filter #(.contains (name %) "-") (keys {:a-id 2 :b 2}))) => (:a-id :aa)
 
 (s/fdef replace-dash

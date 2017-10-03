@@ -1,7 +1,7 @@
 (ns keboola.facebook.api.parser-test
   (:require [keboola.facebook.api.parser :as sut]
             [clojure.test :refer :all]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [keboola.test-utils.core :refer [test-and-check]]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.test.check.properties :as prop]))

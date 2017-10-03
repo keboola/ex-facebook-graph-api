@@ -1,7 +1,7 @@
 (ns keboola.http.recording
   (:require [clojure.walk :refer [postwalk postwalk-demo]]
             [cheshire.core :refer [generate-string]]))
-            
+
 
 (def recording (atom '()))
 (def do-recording? (atom false))
@@ -61,9 +61,11 @@
 (defn prepare-recording [token]
   (apply str (mapcat (fn [r]
                        (let [request (postwalk #(replace-token % token) (:request r))
-                             response (postwalk #(replace-token % token) (:response r))]
+                             response (postwalk #(replace-token % token) (:response r))
+                             shaved-response (select-keys response [:status :body])
+                             ]
                          [(pprint request)
-                          (str "(fn [req]" (pprint response) ")")]))
+                          (str "(fn [req]" (pprint shaved-response) ")")]))
                      @recording)))
 
 (defn save-current-recording [path namespace-name token-to-replace]
@@ -71,4 +73,3 @@
         recording-str (str "\n{\n" (prepare-recording token-to-replace) "\n}")]
     (with-open [w (clojure.java.io/writer path)]
       (.write w (str ns-str (str "(def recorded " recording-str ")"))))))
-    

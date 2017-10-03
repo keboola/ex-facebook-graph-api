@@ -1,0 +1,61 @@
+{
+  "storage" : { },
+  "parameters" : {
+    "accounts" : {
+      "act_10152562141153995" : {
+        "account_id" : "10152562141153995",
+        "business_name" : "",
+        "currency" : "EUR",
+        "id" : "act_10152562141153995",
+        "name" : "blabla"
+      }
+    },
+    "api-version" : "v2.9",
+    "queries" : [ {
+      "name" : "campaigns",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "campaigns",
+        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_28d){account_id,account_name,campaign_id,campaign_name,impressions,clicks,spend,reach} ",
+        "ids" : "act_10152562141153995,act_10152437784203995"
+      }
+    }, {
+      "name" : "campaigns_insights_type",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "campaigns",
+        "fields" : "insights.time_range({'since':'2017-04-01','until':'2017-04-06'}).action_breakdowns(action_type).time_increment(1){account_id,account_name,campaign_id,campaign_name,actions}",
+        "ids" : "act_10152562141153995,act_10152437784203995"
+      }
+    }, {
+      "name" : "campaigns_insights_reaction",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "campaigns",
+        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_3d).time_increment(1){account_id,account_name,campaign_id,campaign_name,actions}",
+        "ids" : "act_10152562141153995,act_10152437784203995"
+      }
+    } ]
+  },
+  "authorization" : {
+    "oauth_api" : {
+      "id" : "keboola.ex-facebook-ads",
+      "credentials" : {
+        "id" : "main",
+        "authorizedFor" : "Myself",
+        "creator" : {
+          "id" : "1234",
+          "description" : "me@keboola.com"
+        },
+        "created" : "2016-01-31 00:13:30",
+        "oauthVersion" : "facebook",
+        "appKey" : "xxx",
+        "#data" : "{\"token\":\"XXTOKENXX\"}",
+        "#appSecret" : "KBC::Encrypted==ENCODEDSTRING=="
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "storage" : { },
+  "parameters" : {
+    "accounts" : {
+      "act_10152412627713995" : {
+        "account_id" : "10152412627713995",
+        "business_name" : "",
+        "currency" : "EUR",
+        "id" : "act_10152412627713995",
+        "name" : "blabla"
+      }
+    },
+    "api-version" : "v2.9",
+    "queries" : [ {
+      "name" : "ads",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "ads",
+        "fields" : "id,name,adset_id",
+        "ids" : null
+      }
+    }, {
+      "name" : "campaigns",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "campaigns",
+        "fields" : "id,name,account_id",
+        "ids" : null
+      }
+    }, {
+      "name" : "adsets",
+      "type" : "nested-query",
+      "disabled" : false,
+      "query" : {
+        "path" : "adsets",
+        "fields" : "id,name,account_id",
+        "ids" : null
+      }
+    } ]
+  },
+  "authorization" : {
+    "oauth_api" : {
+      "id" : "keboola.ex-facebook-ads",
+      "credentials" : {
+        "id" : "main",
+        "authorizedFor" : "Myself",
+        "creator" : {
+          "id" : "1234",
+          "description" : "me@keboola.com"
+        },
+        "created" : "2016-01-31 00:13:30",
+        "oauthVersion" : "facebook",
+        "appKey" : "xxx",
+        "#data" : "{\"token\":\"XXTOKENXX\"}",
+        "#appSecret" : "KBC::Encrypted==ENCODEDSTRING=="
+      }
+    }
+  }
+}

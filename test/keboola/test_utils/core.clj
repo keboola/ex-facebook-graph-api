@@ -1,6 +1,6 @@
 (ns keboola.test-utils.core
   (:require [clojure.string :as string]
-            [clojure.spec.test :as stest]
+            [clojure.spec.test.alpha :as stest]
             [clojure.java.io :as io]
             [clojure.test :refer [is]]))
 
@@ -34,7 +34,7 @@
 
 (defn prints-error? [error-fn & params]
   (is (= (clojure.string/trim (with-err-str (apply error-fn params))) (clojure.string/join " " params))))
-  
+
 
 (defn prints-msg? [print-fn & params]
   (is (= (clojure.string/trim (with-out-str (apply print-fn params))) (clojure.string/join " " params))))

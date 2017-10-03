@@ -1,5 +1,5 @@
 (ns keboola.facebook.api.specs
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [clojure.string :refer [blank?]]
             [clojure.test.check.generators :as gen]))
 

@@ -4,3 +4,5 @@
 /.nrepl-history
 /.nrepl-port
 /src/keboola/facebook/api/sandbox.clj
+/.fbtokens-env
+*tern-port

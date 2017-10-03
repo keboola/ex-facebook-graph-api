@@ -1,5 +1,5 @@
 (ns keboola.facebook.api.parser
-  (:require   [clojure.spec :as s]
+  (:require   [clojure.spec.alpha :as s]
               [keboola.facebook.api.specs :as ds]
               [keboola.docker.runtime :refer [app-error]]
               [clj-time.core :as t]
