@@ -10,14 +10,13 @@
         "name" : "blabla"
       }
     },
-    "api-version" : "v2.8",
+    "api-version" : "v2.9",
     "queries" : [ {
       "name" : "ads",
       "type" : "nested-query",
       "disabled" : false,
       "query" : {
         "path" : "ads",
-        "limit" : "50",
         "fields" : "id,name,adset_id",
         "ids" : null
       }
@@ -27,7 +26,6 @@
       "disabled" : false,
       "query" : {
         "path" : "campaigns",
-        "limit" : "50",
         "fields" : "id,name,account_id",
         "ids" : null
       }
@@ -37,7 +35,6 @@
       "disabled" : false,
       "query" : {
         "path" : "adsets",
-        "limit" : "50",
         "fields" : "id,name,account_id",
         "ids" : null
       }

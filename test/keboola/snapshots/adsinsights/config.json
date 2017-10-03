@@ -10,15 +10,14 @@
         "name" : "blabla"
       }
     },
-    "api-version" : "v2.8",
+    "api-version" : "v2.9",
     "queries" : [ {
       "name" : "ads_insights",
       "type" : "nested-query",
       "disabled" : false,
       "query" : {
         "path" : "ads",
-        "limit" : "55",
-        "fields" : "insights.action_breakdowns(action_type).date_preset(last_3_days).time_increment(1){ad_id,impressions,reach,clicks,spend,video_30_sec_watched_actions,video_p95_watched_actions,actions}",
+        "fields" : "insights.action_breakdowns(action_type).date_preset(last_3d).time_increment(1){ad_id,impressions,reach,clicks,spend,video_30_sec_watched_actions,video_p95_watched_actions,actions}",
         "ids" : "act_10152437784203995"
       }
     } ]

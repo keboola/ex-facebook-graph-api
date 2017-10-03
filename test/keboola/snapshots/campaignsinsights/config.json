@@ -10,14 +10,14 @@
         "name" : "blabla"
       }
     },
-    "api-version" : "v2.8",
+    "api-version" : "v2.9",
     "queries" : [ {
       "name" : "campaigns",
       "type" : "nested-query",
       "disabled" : false,
       "query" : {
         "path" : "campaigns",
-        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_28_days){account_id,account_name,campaign_id,campaign_name,impressions,clicks,spend,reach} ",
+        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_28d){account_id,account_name,campaign_id,campaign_name,impressions,clicks,spend,reach} ",
         "ids" : "act_10152562141153995,act_10152437784203995"
       }
     }, {
@@ -35,7 +35,7 @@
       "disabled" : false,
       "query" : {
         "path" : "campaigns",
-        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_3_days).time_increment(1){account_id,account_name,campaign_id,campaign_name,actions}",
+        "fields" : "insights.action_breakdowns(action_reaction).date_preset(last_3d).time_increment(1){account_id,account_name,campaign_id,campaign_name,actions}",
         "ids" : "act_10152562141153995,act_10152437784203995"
       }
     } ]
