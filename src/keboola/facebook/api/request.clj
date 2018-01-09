@@ -208,6 +208,11 @@
 (defn get-accounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/accounts" :version version)))
 
+(defn get-igaccounts [access-token & {:keys [version]}]
+  (apply concat (get-request access-token "me/accounts"
+                             :query {:fields "instagram_business_account,name,category"}
+                             :version version)))
+
 (defn get-adaccounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/adaccounts"
                              :query {:fields "account_id,id,business_name,name,currency"}

@@ -27,6 +27,19 @@
      (log (generate-string {:code (:status e 500) :error (:body e)}))))
   )
 
+(defn igaccounts [credentials config]
+  (try+
+   (let [token (:token credentials)
+         version (-> config :parameters :api-version)
+         accounts (request/get-igaccounts token :version version)
+         ig-accounts (filter #(contains? % :instagram_business_account) accounts)
+         result (map #(assoc (select-keys % [:name :category]) :id (-> % :instagram_business_account :id) :fb_page_id (:id %)) ig-accounts)]
+     (log (generate-string result)))
+   (catch Object e
+     (log (generate-string {:code (:status e 500) :error (:body e)}))))
+  )
+
+
 (defn log-debug-token [app-token credentials prepend-message]
   (try+
    (if @log-token?
