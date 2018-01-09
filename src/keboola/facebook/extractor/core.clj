@@ -69,6 +69,7 @@
       "debugtoken" (sync-actions/log-debug-token app-access-token credentials nil)
       "accounts" (sync-actions/accounts credentials config)
       "adaccounts" (sync-actions/adaccounts credentials config)
+      "igaccounts" (sync-actions/igaccounts credentials config)
       (treat  #(run credentials parameters out-dir-path app-access-token)))))
 
 (defn -main [& args]
