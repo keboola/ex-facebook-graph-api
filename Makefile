@@ -43,3 +43,7 @@ docker-test:
 # runs jar with visual vm profiler. Needs visualVM to be running with Start up profiler plugin
 run-jar-agent:
 	java -Xmx256m -agentpath:/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib/deployed/jdk16/mac/libprofilerinterface.jnilib=/Applications/VisualVM.app/Contents/Resources/visualvm/profiler/lib,5140 -jar target/ex-fb-graph-api-1.0.jar -d tmp/
+rmi:
+	-docker rmi -f  $$(docker images -q -f "dangling=true")
+rm:
+	-docker rm $$(docker ps -q -f 'status=exited')

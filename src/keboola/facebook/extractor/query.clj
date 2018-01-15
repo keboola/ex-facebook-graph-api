@@ -19,6 +19,21 @@
     (run-and-write token out-dir name query version))
   (runtime/log-strings "Run query" name "finished"))
 
+(defn retrieve-page-access-token [id token version]
+  (let [accounts (request/get-accounts token :version version)]
+    (:page-access-token (some #(= id (:id %)) accounts))
+    ))
+
+(defn run-nested-query-per-id [user-token out-dir {:keys [name query version]}]
+  (if-let [ids-str (:ids query)]
+    (doseq [id (s/split ids-str #",")]
+      (let [token (or (retrieve-page-access-token id user-token version) user-token)]
+        (run-and-write token out-dir name (assoc query :ids id) version)))
+    ;else if no ids then run the whole query
+    (run-and-write token out-dir name query version))
+  (runtime/log-strings "Run query" name "finished"))
+
+
 (defn parse-token [credentials]
   (:token credentials))
 
