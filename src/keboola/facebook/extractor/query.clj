@@ -30,7 +30,7 @@
       (let [token (or (retrieve-page-access-token id user-token version) user-token)]
         (run-and-write token out-dir name (assoc query :ids id) version)))
     ;else if no ids then run the whole query
-    (run-and-write token out-dir name query version))
+    (run-and-write user-token out-dir name query version))
   (runtime/log-strings "Run query" name "finished"))
 
 
