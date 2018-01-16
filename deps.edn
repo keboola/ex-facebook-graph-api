@@ -1,0 +1,17 @@
+{:paths ["src" "test"]
+ :deps {
+        org.clojure/clojure {:mvn/version "1.9.0"}
+        cheshire {:mvn/version "5.8.0"}
+        clj-http {:mvn/version "3.7.0"}
+        clojure-csv/clojure-csv {:mvn/version "2.0.1"}
+        de.ubercode.clostache/clostache {:mvn/version "1.4.0"}
+        org.clojure/tools.cli {:mvn/version "0.3.5"}
+        semantic-csv {:mvn/version "0.2.0"}
+        org.clojure/data.csv {:mvn/version "0.1.4"}
+        org.clojure/test.check {:mvn/version "0.9.0"}
+        org.clojure/core.async {:mvn/version "0.3.443"}
+        ;adzerk/boot-test {:mvn/version "1.2.0" :scope "test"}
+        clj-http-fake {:mvn/version "1.0.3"}
+        slingshot {:mvn/version "0.12.2"}
+        clj-time {:mvn/version "0.14.0"}
+}}
