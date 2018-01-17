@@ -17,8 +17,7 @@
                  [slingshot "0.12.2"]
                  [clj-time "0.14.0"]])
 
-(require '[keboola.facebook.extractor.core])
-(require '[keboola.snapshots.core])
+
 (require '[adzerk.boot-test :refer :all])
 
 (deftask run-extractor
@@ -27,7 +26,9 @@
   (if-not args
     (do (boot.util/fail "arguments string x is requried. ")
         (*usage*)))
-  ((resolve 'keboola.facebook.extractor.core/-main) args))
+  (do
+    (require '[keboola.facebook.extractor.core])
+    ((resolve 'keboola.facebook.extractor.core/-main) args)))
 
 (deftask generate-test
   "given data dir with config.json, this task runs extraktor,
@@ -37,9 +38,11 @@ record api calls, create snapshot tests with recrded api calls and compare resul
   (if-not data
     (do (boot.util/fail "arguments string d is requried. ")
         (*usage*)))
-  ((resolve 'keboola.snapshots.core/generate-test) data (not skip-token)))
+  (do(require '[keboola.snapshots.core])
+    ((resolve 'keboola.snapshots.core/generate-test) data (not skip-token))))
 
 (deftask regenerate-snapshots [f dirfilter VAL str "regexp to filter dirs to process"]
+  (require '[keboola.snapshots.core])
   ((resolve 'keboola.snapshots.core/regenerate-all-snapshot-dirs) dirfilter))
 
 (deftask build
