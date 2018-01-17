@@ -5,17 +5,17 @@
                  [org.clojure/clojure "1.9.0"]
                  [cheshire "5.8.0"]
                  [clj-http "3.7.0"]
-                 [clojure-csv/clojure-csv "2.0.1"]
+                 [clojure-csv/clojure-csv "2.0.2"]
                  [de.ubercode.clostache/clostache "1.4.0"]
                  [org.clojure/tools.cli "0.3.5"]
                  [semantic-csv "0.2.0"]
                  [org.clojure/data.csv "0.1.4"]
                  [org.clojure/test.check "0.9.0"]
-                 [org.clojure/core.async "0.3.443"]
+                 [org.clojure/core.async "0.4.474"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
                  [clj-http-fake "1.0.3"]
                  [slingshot "0.12.2"]
-                 [clj-time "0.14.0"]])
+                 [clj-time "0.14.2"]])
 
 
 (require '[adzerk.boot-test :refer :all])
