@@ -1,28 +1,32 @@
 #!/usr/bin/env boot
 (set-env!
  :source-paths #{"src" "test"}
- :dependencies '[[adzerk/boot-test "1.2.0" :scope "test"]
-                 [seancorfield/boot-tools-deps "0.1.4"]
-                 ])
+ :dependencies '[
+                 [org.clojure/clojure "1.9.0"]
+                 [cheshire "5.8.0"]
+                 [clj-http "3.7.0"]
+                 [clojure-csv/clojure-csv "2.0.1"]
+                 [de.ubercode.clostache/clostache "1.4.0"]
+                 [org.clojure/tools.cli "0.3.5"]
+                 [semantic-csv "0.2.0"]
+                 [org.clojure/data.csv "0.1.4"]
+                 [org.clojure/test.check "0.9.0"]
+                 [org.clojure/core.async "0.3.443"]
+                 [adzerk/boot-test "1.2.0" :scope "test"]
+                 [clj-http-fake "1.0.3"]
+                 [slingshot "0.12.2"]
+                 [clj-time "0.14.0"]])
 
-(require '[adzerk.boot-test :as boot-test]
-         '[boot-tools-deps.core :refer [deps]])
-
-(deftask test
-  "Runs tests"
-  []
-  (comp (deps :aliases [:test])
-        (boot-test/test)))
+(require '[keboola.facebook.extractor.core])
+(require '[keboola.snapshots.core])
+(require '[adzerk.boot-test :refer :all])
 
 (deftask run-extractor
   "run extractor"
   [x args VAL  str "arguments string for main- function"]
-  (comp
-   (deps)
-   (if-not args
-     (do (boot.util/fail "arguments string x is requried. ")
-         (*usage*))))
-  (require '[keboola.facebook.extractor.core])
+  (if-not args
+    (do (boot.util/fail "arguments string x is requried. ")
+        (*usage*)))
   ((resolve 'keboola.facebook.extractor.core/-main) args))
 
 (deftask generate-test
@@ -33,18 +37,15 @@ record api calls, create snapshot tests with recrded api calls and compare resul
   (if-not data
     (do (boot.util/fail "arguments string d is requried. ")
         (*usage*)))
-  (require '[keboola.snapshots.core])
   ((resolve 'keboola.snapshots.core/generate-test) data (not skip-token)))
 
 (deftask regenerate-snapshots [f dirfilter VAL str "regexp to filter dirs to process"]
-  (require '[keboola.snapshots.core])
   ((resolve 'keboola.snapshots.core/regenerate-all-snapshot-dirs) dirfilter))
 
 (deftask build
   "Builds an uberjar extractor that can be run with java -jar"
   []
   (comp
-   (deps)
    (aot :all true)
    (pom :project 'ex-fb-graph-api
         :version "1.0")
