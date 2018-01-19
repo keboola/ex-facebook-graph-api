@@ -17,7 +17,8 @@
   (let [accounts (request/get-accounts token :version version)
         page-token (:access_token (first (filter #(= id (:id %)) accounts)))]
     (if (nil? page-token)
-      (runtime/log-strings "Could not find page access token for" id "Will use user token instead."))
+      (runtime/log-strings "Could not find page access token for" id "Will use user token instead.")
+      (runtime/log-strings "Using page access token to retrieve data for" id))
     page-token))
 
 (defn run-nested-query [token out-dir {:keys [name query version]}]
