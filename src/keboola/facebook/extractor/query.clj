@@ -47,7 +47,7 @@
         query)))
 
 (defn ex-fb? []
-  (= "kebool.ex-facebook" (runtime/get-component-id)))
+  (= "keboola.ex-facebook" (runtime/get-component-id)))
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
@@ -55,6 +55,6 @@
         q (check-ids query all-ids)
         complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
         run-with-divided-ids #(run-nested-query-per-id token out-dir complete-query)
-        run-all-ids #(run-nested-query token out-dir complete-query)]
+        run-with-all-ids #(run-nested-query token out-dir complete-query)]
     (case (:type query)
-      "nested-query" (if (ex-fb?) (run-with-divided-ids) (run-with-divided-ids)))))
+      "nested-query" (if (ex-fb?) (run-with-divided-ids) (run-with-all-ids)))))
