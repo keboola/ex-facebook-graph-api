@@ -49,12 +49,12 @@
         ;else return query untouched
         query)))
 
-(defn query-contains-insights? [{:keys [fields path]}]
-  (or (string/includes? fields "insights")
-      (string/includes? path "insights")))
+(defn query-contains-insights? [{:keys [fields path] :or {fields "" path ""}}]
+  (or (string/includes? (or fields "") "insights")
+      (string/includes? (or path "") "insights")))
 
 (defn need-page-token? [query]
-  (and (= "keboola.ex-facebook" (runtime/get-component-id))
+  (and (runtime/keboola-ex-facebook-component?)
        (query-contains-insights? query)))
 
 (defn run-query [query all-ids credentials out-dir]
@@ -64,6 +64,6 @@
         complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
         run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query)
         run-with-user-token #(run-nested-query token out-dir complete-query)
-        run-query #(if (need-page-token? query) (run-with-page-token) (run-with-user-token))]
+        run-query #(if (need-page-token? (:query query)) (run-with-page-token) (run-with-user-token))]
     (case (:type query)
       "nested-query" (run-query))))

@@ -34,6 +34,9 @@
 (defn get-component-id []
   (System/getenv "KBC_COMPONENTID"))
 
+(defn keboola-ex-facebook-component? []
+  (= "keboola.ex-facebook" (get-component-id)))
+
 (defn save-manifest [csvfile-path body]
   (let [manifest (select-keys body [:destination :columns :incremental :primary_key :delimiter :enclosure])
         manifest-path (str csvfile-path ".manifest")]
