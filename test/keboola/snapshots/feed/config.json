@@ -8,7 +8,7 @@
         "category" : "software"
       }
     },
-    "api-version" : "v2.8",
+    "api-version" : "v2.11",
     "queries" : [ {
       "name" : "feed",
       "type" : "nested-query",

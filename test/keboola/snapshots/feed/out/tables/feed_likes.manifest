@@ -1,1 +1,0 @@
-{"columns":["id","ex-account-id","fb-graph-node","parent-id","name","username"],"incremental":true,"primary_key":["parent_id","id"]}
