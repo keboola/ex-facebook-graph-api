@@ -19,6 +19,7 @@
 
 
 (require '[adzerk.boot-test :refer :all])
+(require '[keboola.facebook.extractor.core])
 
 (deftask run-extractor
   "run extractor"

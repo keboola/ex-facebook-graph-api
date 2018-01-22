@@ -2,9 +2,11 @@
 # Makefile commands to manage and simplify development
 
 DATADIR = ${PWD}/tmp/
+COMPONENTID = keboola.ex-facebook
 FILTER =".*"
 -include .fbtokens-env
 export
+export KBC_COMPONENTID=$(COMPONENTID)
 
 #starts clojure repl in a docker container
 repl:
