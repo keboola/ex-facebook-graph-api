@@ -100,6 +100,7 @@
     (try+
      (let [response (sut/make-get-request "https://graph.facebook.com/v2.8/always_media_error?token=asd")]
        (is (contains? response :body))
+       (is (contains? (:body response) :data))
        (is (contains? response :status))
        (is (= 200 (:status response)))
-       (is (empty? (:body response)))))))
+       (is (empty? (-> response :body :data)))))))

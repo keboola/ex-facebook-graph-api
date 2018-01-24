@@ -62,7 +62,7 @@
 
 (def MIN_TRY_LIMIT_COUNT 3)
 (def MIN_TRY_LIMIT 1)
-(def empty-response {:body [] :status 200})
+(def empty-response {:body {:data []} :status 200})
 
 (defn call-and-adapt [api-fn url min-limit-count]
   (try+
