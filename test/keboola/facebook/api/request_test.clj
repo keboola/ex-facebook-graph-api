@@ -37,6 +37,8 @@
 (def success-response
   {:request-time 30, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :headers {}, :orig-content-encoding nil, :status 200, :length 77, :body "{}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]})
 
+(def media-posted-before-error-response
+  {:request-time 30, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :headers {}, :orig-content-encoding nil, :status 400, :length 77, :body "{\"error\":{\"message\":\"Invalid parameter\",\"type\":\"OAuthException\",\"code\":100,\"error_data\":{\"blame_field_specs\":[[\"\"]]},\"error_subcode\":2108006,\"is_transient\":false,\"error_user_title\":\"Media Posted Before Business Account Conversion\",\"error_user_msg\":\"The media was posted before the most recent time that the user's account was converted to a business account from a personal account.\",\"fbtrace_id\":\"BYNS8WYLLD3\"}}"})
 
 (def error-count (atom 0))
 (defn set-error-count [new-count] (reset! error-count new-count))
@@ -46,6 +48,9 @@
 
 (def apimocks-templates
   {
+   "https://graph.facebook.com/v2.8/always_media_error?token=asd"
+   (fn [req]
+     media-posted-before-error-response)
    "https://graph.facebook.com/v2.8/always_400?token=aa"
    (fn [req]
      error-400-response)
@@ -88,3 +93,13 @@
   (with-global-fake-routes-in-isolation
     (generate-apimocks 101)
     (is (= 200 (:status (sut/make-get-request "https://graph.facebook.com/v2.8/always_200?token=aa&limit=20"))))))
+
+(deftest test-media-posted-before-error-response
+  (with-global-fake-routes-in-isolation
+    apimocks-templates
+    (try+
+     (let [response (sut/make-get-request "https://graph.facebook.com/v2.8/always_media_error?token=asd")]
+       (is (contains? response :body))
+       (is (contains? response :status))
+       (is (= 200 (:status response)))
+       (is (empty? (:body response)))))))
