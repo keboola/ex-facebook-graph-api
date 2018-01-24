@@ -44,6 +44,13 @@
            "limit="
            (clojure.string/replace-first last-part #"\d+" (str new-limit))))))
 
+(defn skip-error-exception? [e]
+  (if-let [status (:status e)]
+      (and
+       (<= 400 status 500)
+       (or
+        (re-find #"Media Posted Before Business Account Conversion" (:body e))))))
+
 (defn retry-exception? [e]
   (if-let [status (:status e)]
       (and
@@ -55,10 +62,14 @@
 
 (def MIN_TRY_LIMIT_COUNT 3)
 (def MIN_TRY_LIMIT 1)
+(def empty-response {:body [] :status 200})
 
 (defn call-and-adapt [api-fn url min-limit-count]
   (try+
    (api-fn url)
+   (catch skip-error-exception? e
+     (log-error "Recoverable error encountered: Media Posted Before Business Account Conversion Error" (:body e))
+     empty-response)
    (catch retry-exception? e
      (if (zero? min-limit-count)
        (throw+ e)
