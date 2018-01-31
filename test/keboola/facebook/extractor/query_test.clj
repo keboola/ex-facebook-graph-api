@@ -14,3 +14,9 @@
   (is (sut/query-contains-insights? {:fields "asdasdasd,insights" :path "feed"}))
   (is (sut/query-contains-insights? {:fields "asdasdasd,insights" :path nil}))
   (is (sut/query-contains-insights? {:fields nil :path "insights"})))
+
+(deftest test-query-path-feed?
+  (is (not (sut/query-path-feed? {})))
+  (is (not (sut/query-path-feed? {:path "ratings" :fields "feed"})))
+  (is (sut/query-path-feed? {:path "feed" :fields "insights"}))
+  (is (sut/query-path-feed? {:path "me/feed" :fields "insights"})))
