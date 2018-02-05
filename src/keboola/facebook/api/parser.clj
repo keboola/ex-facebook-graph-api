@@ -106,6 +106,7 @@
         (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
         (some? (ads-action-stats-types array-name))
         (map #(assoc % :ads_action_name (name array-name)) array)
+        (and (= array-name :media) (empty? array)) '()
         :else (app-error (str "unsuported array:" array-name array))))
 
 (s/fdef filter-scalars
