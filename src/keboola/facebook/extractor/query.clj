@@ -13,6 +13,7 @@
     (output/write-rows all-rows out-dir prefix)))
 
 
+
 (defn retrieve-page-access-token [id token version]
   (let [accounts (request/get-accounts token :version version)
         page-token (:access_token (first (filter #(= id (:id %)) accounts)))]
@@ -20,6 +21,20 @@
       (runtime/log-strings "Could not find page access token for" id "Will use user token instead.")
       (runtime/log-strings "Using page access token to retrieve data for" id))
     page-token))
+
+(defn choose-token [id user-token version]
+  (or (retrieve-page-access-token id user-token version) user-token))
+
+
+(defn- run-by-id-merge-and-write [token out-dir prefix query version]
+  (let [ids-str (:ids query)
+        prepare-query #(assoc query :ids %)
+        run-query (fn [id] (request/nested-request (choose-token id token version) (prepare-query id) :version version))
+        ids-seq (s/split ids-str #",")
+        all-merged-queries-rows (mapcat #(run-query %) ids-seq)
+        all-rows (apply concat all-merged-queries-rows)]
+    (output/write-rows all-rows out-dir prefix)))
+
 
 (defn run-nested-query [token out-dir {:keys [name query version]}]
   (if-let [ids-str (:ids query)]
@@ -30,10 +45,8 @@
   (runtime/log-strings "Run query" name "finished"))
 
 (defn run-nested-query-with-page-token [user-token out-dir {:keys [name query version]}]
-  (if-let [ids-str (:ids query)]
-    (doseq [id (s/split ids-str #",")]
-      (let [token (or (retrieve-page-access-token id user-token version) user-token)]
-        (run-and-write token out-dir name (assoc query :ids id) version)))
+  (if (some?  (:ids query))
+    (run-by-id-merge-and-write user-token out-dir name query version)
     ;else if no ids then run the whole query
     (run-and-write user-token out-dir name query version))
   (runtime/log-strings "Run query" name "finished"))
