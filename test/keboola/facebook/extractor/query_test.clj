@@ -33,6 +33,13 @@
   (is (sut/query-path-feed? {:path "feed" :fields "insights"}))
   (is (sut/query-path-feed? {:path "me/feed" :fields "insights"})))
 
+(deftest test-query-need-userinfo?
+  (is (not (sut/query-need-userinfo? {})))
+  (is (not (sut/query-need-userinfo? {:path "ratings" :fields "feed"})))
+  (is (sut/query-need-userinfo? {:path "likes" :fields "insights"}))
+  (is (sut/query-need-userinfo? {:path "" :fields "likes"}))
+  (is (sut/query-need-userinfo? {:path "me/feed" :fields "from"})))
+
 
 (defn empty-dir? [path]
   (let [file (io/file path)]

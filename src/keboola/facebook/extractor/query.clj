@@ -67,13 +67,17 @@
       (string/includes? (or path "") "insights")))
 
 (defn query-path-feed? [{:keys [path] :or {path ""}}]
-  (string/includes? (or path "") "feed")
-  )
+  (string/includes? (or path "") "feed"))
+
+(defn query-need-userinfo? [{:keys [fields path] :or {fields "" path ""}}]
+  (or (some #(string/includes? (or fields "") %) ["likes" "from" "username"])
+      (string/includes? (or path "") "likes")))
 
 (defn need-page-token? [query]
   (and (runtime/keboola-ex-facebook-component?)
        (or (query-contains-insights? query)
-           (not (query-path-feed? query)))))
+           (not (query-path-feed? query))
+           (query-need-userinfo? query))))
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
