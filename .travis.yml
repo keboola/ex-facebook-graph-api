@@ -7,12 +7,24 @@ services:
 
 before_install:
   - docker-compose -v
+  - docker -v
 
-install:
-  - docker-compose build app
+before_script:
+  - export APP_IMAGE=keboola/ex-facebook-graph-api
+  - docker build -t $APP_IMAGE .
+  - docker run --rm $APP_IMAGE boot test
+
+  # push test image to ECR
+  # - docker pull quay.io/keboola/developer-portal-cli-v2:latest
+  # - export REPOSITORY=`docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-repository $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP`
+  # - docker tag $APP_IMAGE:latest $REPOSITORY:test
+  # - eval $(docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-login $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP)
+  # - docker push $REPOSITORY:test
+  # - docker pull quay.io/keboola/syrup-cli:latest
 
 script:
-  - docker-compose run app test
+  # - docker-compose run app test
+  - skip
 
 deploy:
   provider: script
