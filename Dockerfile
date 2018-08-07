@@ -8,5 +8,4 @@ ADD . /code
 WORKDIR /code
 RUN boot build
 RUN chmod a+r target/ex-fb-graph-api-1.0.jar
-EXPOSE 1111
-ENTRYPOINT ["java", "-jar", "-Xmx1g","target/ex-fb-graph-api-1.0.jar", "-d" , "/data/"]
+CMD ["java", "-jar", "-Xmx1g","target/ex-fb-graph-api-1.0.jar", "-d" , "/data/"]
