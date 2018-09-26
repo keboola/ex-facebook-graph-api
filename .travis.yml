@@ -15,14 +15,15 @@ before_script:
   - docker run --rm $APP_IMAGE boot test
 
   # push test image to ECR
-  # - docker pull quay.io/keboola/developer-portal-cli-v2:latest
-  # - export REPOSITORY=`docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-repository $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP`
-  # - docker tag $APP_IMAGE:latest $REPOSITORY:test
-  # - eval $(docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-login $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP)
-  # - docker push $REPOSITORY:test
-  # - docker pull quay.io/keboola/syrup-cli:latest
+  - docker pull quay.io/keboola/developer-portal-cli-v2:latest
+  - export REPOSITORY=`docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-repository $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP_1`
+  - docker tag $APP_IMAGE:latest $REPOSITORY:test
+  - eval $(docker run --rm -e KBC_DEVELOPERPORTAL_USERNAME -e KBC_DEVELOPERPORTAL_PASSWORD -e KBC_DEVELOPERPORTAL_URL quay.io/keboola/developer-portal-cli-v2:latest ecr:get-login $KBC_DEVELOPERPORTAL_VENDOR $KBC_DEVELOPERPORTAL_APP_1)
+  - docker push $REPOSITORY:test
+  - docker pull quay.io/keboola/syrup-cli:latest
 
 script:
+  # - docker run --rm -e KBC_STORAGE_TOKEN quay.io/keboola/syrup-cli:latest run-job $KBC_DEVELOPERPORTAL_APP_1 $KBC_APP_TEST_CONFIG test
   # - docker-compose run app test
   - skip
 
@@ -32,6 +33,3 @@ deploy:
   script: ./deploy.sh
   on:
     tags: true
-
-#notifications:
-#  slack: $SLACK_INTEGRATION_DOMAIN:$SLACK_INTEGRATION_KEY
