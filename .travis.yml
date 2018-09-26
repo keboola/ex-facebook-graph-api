@@ -23,9 +23,9 @@ before_script:
   - docker pull quay.io/keboola/syrup-cli:latest
 
 script:
-  # - docker run --rm -e KBC_STORAGE_TOKEN quay.io/keboola/syrup-cli:latest run-job $KBC_DEVELOPERPORTAL_APP_1 $KBC_APP_TEST_CONFIG test
-  # - docker-compose run app test
-  - skip
+  - docker run --rm -e KBC_STORAGE_TOKEN quay.io/keboola/syrup-cli:latest run-job $KBC_DEVELOPERPORTAL_APP_1 $KBC_APP_1_TEST_CONFIG test
+  - docker run --rm -e KBC_STORAGE_TOKEN quay.io/keboola/syrup-cli:latest run-job $KBC_DEVELOPERPORTAL_APP_2 $KBC_APP_2_TEST_CONFIG test
+
 
 deploy:
   provider: script
