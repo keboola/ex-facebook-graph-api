@@ -7,10 +7,10 @@
             [keboola.facebook.extractor.output :as output]
             [clojure.string :as string]))
 
-(defn- run-and-write [token out-dir prefix query version]
+(defn- run-and-write [token out-dir prefix query version state]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)]
-    (output/write-rows all-rows out-dir prefix)))
+    (output/write-rows all-rows out-dir prefix state)))
 
 
 
@@ -26,29 +26,29 @@
   (or (retrieve-page-access-token id user-token version) user-token))
 
 
-(defn- run-by-id-merge-and-write [token out-dir prefix query version]
+(defn- run-by-id-merge-and-write [token out-dir prefix query version state]
   (let [ids-str (:ids query)
         prepare-query #(assoc query :ids %)
         run-query (fn [id] (request/nested-request (choose-token id token version) (prepare-query id) :version version))
         ids-seq (s/split ids-str #",")
         all-merged-queries-rows (mapcat #(run-query %) ids-seq)
         all-rows (apply concat all-merged-queries-rows)]
-    (output/write-rows all-rows out-dir prefix)))
+    (output/write-rows all-rows out-dir prefix state)))
 
 
-(defn run-nested-query [token out-dir {:keys [name query version]}]
+(defn run-nested-query [token out-dir {:keys [name query version]} state]
   (if-let [ids-str (:ids query)]
     (doseq [ids (partition-all 50 (s/split ids-str #","))]
-      (run-and-write token out-dir name (assoc query :ids (s/join "," ids)) version))
+      (run-and-write token out-dir name (assoc query :ids (s/join "," ids)) version state))
     ;else if no ids then run the whole query
-    (run-and-write token out-dir name query version))
+    (run-and-write token out-dir name query version state))
   (runtime/log-strings "Run query" name "finished"))
 
-(defn run-nested-query-with-page-token [user-token out-dir {:keys [name query version]}]
+(defn run-nested-query-with-page-token [user-token out-dir {:keys [name query version]} state]
   (if (some?  (:ids query))
-    (run-by-id-merge-and-write user-token out-dir name query version)
+    (run-by-id-merge-and-write user-token out-dir name query version state)
     ;else if no ids then run the whole query
-    (run-and-write user-token out-dir name query version))
+    (run-and-write user-token out-dir name query version state))
   (runtime/log-strings "Run query" name "finished"))
 
 
@@ -79,13 +79,13 @@
            (not (query-path-feed? query))
            (query-need-userinfo? query))))
 
-(defn run-query [query all-ids credentials out-dir]
+(defn run-query [query all-ids credentials out-dir state]
   (runtime/log-strings "Run query:" query)
   (let [token (parse-token credentials)
         q (check-ids query all-ids)
         complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
-        run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query)
-        run-with-user-token #(run-nested-query token out-dir complete-query)
+        run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query state)
+        run-with-user-token #(run-nested-query token out-dir complete-query state)
         run-query #(if (need-page-token? (:query query)) (run-with-page-token) (run-with-user-token))]
     (case (:type query)
       "nested-query" (run-query))))

@@ -12,6 +12,7 @@
             [keboola.facebook.extractor.sync-actions :as sync-actions]
             [keboola.http.client :refer [fb-requests-count]]
             [keboola.utils.json-to-csv :as csv]
+            [keboola.docker.state :refer [make-json-state-file]]
             [slingshot.slingshot :refer [throw+ try+]]))
 
 (def cli-options  [["-d" "--dataDir path" "Path to data directory e.g. /data"]])
@@ -42,8 +43,9 @@
     (log "writing accounts table")
     (csv/write filepath header data)))
 
-(defn run [credentials parameters out-dir app-access-token]
+(defn run [credentials parameters out-dir app-access-token datadir]
   (let [version (:api-version parameters)
+        prepare-state (fn [query] (make-json-state-file (:merge-state-columns query) [:queries (keyword (:id query)) :tables] datadir))
         all-ids (apply str (interpose "," (map name (keys (:accounts parameters)))))]
     (make-accounts-csv parameters out-dir)
     (sync-actions/log-debug-token app-access-token credentials "Access token info:")
@@ -51,7 +53,7 @@
                   (if (:disabled query)
                     (log-strings "Skipping query" (:name query))
                                         ; else run query:
-                    (query/run-query (assoc query :api-version version) all-ids credentials out-dir)))
+                    (query/run-query (assoc query :api-version version) all-ids credentials out-dir (prepare-state query))))
                 (:queries parameters))))
   (log-strings "Finished, total count of requests to facebook api:" @fb-requests-count))
 
@@ -70,7 +72,7 @@
       "accounts" (sync-actions/accounts credentials config)
       "adaccounts" (sync-actions/adaccounts credentials config)
       "igaccounts" (sync-actions/igaccounts credentials config)
-      (treat  #(run credentials parameters out-dir-path app-access-token)))))
+      (treat  #(run credentials parameters out-dir-path app-access-token datadir)))))
 
 (defn -main [& args]
   (let [{:keys [options summary errors] :as parsed-args} (parse-opts args cli-options)]
