@@ -3,6 +3,7 @@
             [keboola.test-utils.core :as test-utils]
             [clojure.java.io :as io]
             [keboola.facebook.api.request-test :refer [media-posted-before-error-response]]
+            [keboola.docker.state :refer [make-json-state-file]]
             [clojure.test :refer :all])
   (:use clj-http.fake))
 
@@ -49,6 +50,7 @@
 
 (deftest test-media-posted-before-error-response-query
   (let [query {:name "mediatest" :version "v2.11" :query {:path "media" :ids "123" :fields "fields" :since "now" :until "now"}}
+        state (make-json-state-file false [] *tmpdir*)
         token "token"
         out-dir *tmpdir*]
     (println *tmpdir*)
@@ -57,7 +59,7 @@
        "https://graph.facebook.com/v2.11/media?path=media&ids=123&fields=fields&since=now&until=now&access_token=token"
        (fn [req]
          media-posted-before-error-response)}
-      (sut/run-nested-query token out-dir query)
+      (sut/run-nested-query token out-dir query state)
       (is (empty-dir? *tmpdir*)))))
 
 (use-fixtures :once setup-tmpdir)
