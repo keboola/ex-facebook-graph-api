@@ -2,6 +2,7 @@
   (:require [keboola.utils.json-to-csv :as csv]
             [keboola.docker.runtime :as runtime]
             [keboola.docker.config :refer [mkdirp]]
+            [keboola.docker.state-protocol :as state-protocol]
             [clojure.string :refer [split]]
             [clj-time.coerce :refer [to-long]]
             [clj-time.core :refer [now]]
@@ -54,18 +55,20 @@
 (def columns-map (atom {}))
 (defn reset-columns-map [] (reset! columns-map {}))
 
-(defn write-manifest [manifest-path columns is-write? table-name]
+(defn write-manifest [manifest-path columns is-write? table-name state]
   (if is-write?
     (let [manifest {:incremental true :primary_key (get-primary-key columns table-name) :columns columns}]
       (if (not (contains? @columns-map manifest-path))
         (do
           (runtime/save-manifest manifest-path manifest)
+          (state-protocol/save state columns [(keyword table-name)])
           (swap! columns-map assoc manifest-path columns))))))
 
 
 
-(defn prepare-header [rows manifest-path]
-  (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
+(defn prepare-header [rows manifest-path state-columns]
+  (let [row-columns (mapcat #(-> % (dissoc :keboola) keys) rows)
+        columns (set (concat row-columns state-columns))
         all-columns (conj columns :parent-id :fb-graph-node :ex-account-id)
         new-columns (sort-columns all-columns)
         has-data-columns (not-empty (disj (set new-columns) :id :ex-account-id :fb-graph-node :parent-id))
@@ -82,14 +85,14 @@
     ; by default return nil saying we have no data to save
 
 
-(defn flush-buffer [csv-file manifest-path table-name memo]
+(defn flush-buffer [csv-file manifest-path table-name memo state]
   (let [first-write? (:first-write? memo)
         header (if first-write?
-                 (prepare-header (:buffer memo) manifest-path)
+                 (prepare-header (:buffer memo) manifest-path (state-protocol/load state [(keyword table-name)]))
                  (:header memo))]
     (if header
       (do
-        (write-manifest manifest-path header first-write? table-name)
+        (write-manifest manifest-path header first-write? table-name state)
         (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
@@ -100,9 +103,9 @@
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
 
-(defn process-row [row csv-file manifest-path table-name memo]
+(defn process-row [row csv-file manifest-path table-name memo state]
   (if (= (count (:buffer memo)) chan-buffer-size)
-    (let [header (flush-buffer csv-file manifest-path table-name memo)]
+    (let [header (flush-buffer csv-file manifest-path table-name memo state)]
       {:cnt (inc (:cnt memo)) :header header :buffer (list row) :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
@@ -110,7 +113,7 @@
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
 
-(defn create-write-thread [table-name input-ch out-dir qname-prefix]
+(defn create-write-thread [table-name input-ch out-dir qname-prefix state]
   (async/thread
     (try+
      (let [kbc-table-name (if (= (last (split qname-prefix #"_")) table-name)
@@ -124,9 +127,9 @@
          (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
            (let [row (<!! input-ch)]
              (if (some? row)
-               (recur (process-row row out-file sliced-dir-path table-name memo))
+               (recur (process-row row out-file sliced-dir-path table-name memo state))
                ;; else input-ch has closed -> don't call recur,
-               (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
+               (if (some? (flush-buffer out-file sliced-dir-path table-name memo state))
                  (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))))))
                ;; thread terminates
 
@@ -152,11 +155,11 @@
            return-value)))
 
 
-(defn write-rows [rows out-dir qname-prefix]
+(defn write-rows [rows out-dir qname-prefix state]
   (let [sample (take sample-rows-count rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix))
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix state))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
     (try+
