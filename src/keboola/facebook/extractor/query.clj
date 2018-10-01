@@ -12,13 +12,14 @@
         all-rows (apply concat nested-data)]
     (output/write-rows all-rows out-dir prefix)))
 
-
+(defmacro swallow-exceptions [& body]
+    `(try ~@body (catch Exception e#)))
 
 (defn retrieve-page-access-token [id token version]
-  (let [accounts (request/get-accounts token :version version)
-        page-token (:access_token (first (filter #(= id (:id %)) accounts)))]
+  (let [accounts (swallow-exceptions (request/get-accounts token :version version))
+        page-token (if (some? accounts) (:access_token (first (filter #(= id (:id %)) accounts))))]
     (if (nil? page-token)
-      (runtime/log-strings "Could not find page access token for" id "Will use user token instead.")
+      (runtime/log-strings "Could not find page access token for" id ". Token from the configuration will be used instead.")
       (runtime/log-strings "Using page access token to retrieve data for" id))
     page-token))
 
