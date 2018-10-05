@@ -56,6 +56,7 @@
       (and
        (<= 500 status 600)
        (or
+        (re-find #"Sorry, something went wrong" (:body e))
         (re-find #"An unknown error occurred" (:body e))
         (re-find #"An unexpected error has occurred. Please retry" (:body e))
         (re-find #"Please reduce the amount of data" (:body e))))))
