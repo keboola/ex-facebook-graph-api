@@ -79,7 +79,7 @@
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
-  (let [token (docker-config credentials)
+  (let [token (docker-config/get-fb-token credentials)
         q (check-ids query all-ids)
         complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
         run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query)
