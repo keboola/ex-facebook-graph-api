@@ -56,3 +56,8 @@
              (apply load-config datadir)
              [:authorization :oauth_api :credentials :#data])]
     (parse-string data true)))
+
+(defn get-fb-token [user-credentials]
+  (:access_token user-credentials (:token user-credentials)))
+
+

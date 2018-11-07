@@ -3,7 +3,7 @@
             [clojure.test :as t :refer :all]
             [clojure.string :refer [trim ends-with? starts-with?]]
             [keboola.test-utils.core :as test-utils]))
-            
+
 
 (def ^:dynamic *tmpdir* "")
 
@@ -29,8 +29,14 @@
          (ends-with? path "out/tables/")
          (.isDirectory (java.io.File. path))
          (.exists (java.io.File. path))))))
-         
+
 (deftest test-parameters
   (is (thrown? java.io.FileNotFoundException (sut/parameters))))
+
+(deftest test-get-fb-token
+  (is (empty? (sut/get-fb-token {})))
+  (is (= "access_token" (sut/get-fb-token {:access_token "access_token" :token "token"})))
+  (is (= "access_token" (sut/get-fb-token {:access_token "access_token"})))
+  (is (= "token" (sut/get-fb-token {:token "token"}))))
 
 (use-fixtures :once setup-tmpdir)

@@ -2,6 +2,7 @@
   (:require [keboola.facebook.api.request :as request]
             [cheshire.core :refer [generate-string]]
             [slingshot.slingshot :refer [try+ throw+]]
+            [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :refer [log]]))
 
 (def log-token? (atom true))
@@ -9,7 +10,7 @@
 
 (defn accounts [credentials config]
   (try+
-   (let [token (:token credentials)
+   (let [token (docker-config/get-fb-token credentials)
          version (-> config :parameters :api-version)
          accounts (mapv #(dissoc % :access_token) (request/get-accounts token :version version))]
      (log (generate-string accounts)))
@@ -19,7 +20,7 @@
 
 (defn adaccounts [credentials config]
   (try+
-   (let [token (:token credentials)
+   (let [token (docker-config/get-fb-token credentials)
          version (-> config :parameters :api-version)
          accounts (request/get-adaccounts token :version version)]
      (log (generate-string accounts)))
@@ -29,7 +30,7 @@
 
 (defn igaccounts [credentials config]
   (try+
-   (let [token (:token credentials)
+   (let [token (docker-config/get-fb-token credentials)
          version (-> config :parameters :api-version)
          accounts (request/get-igaccounts token :version version)
          ig-accounts (filter #(contains? % :instagram_business_account) accounts)
@@ -43,7 +44,7 @@
 (defn log-debug-token [app-token credentials prepend-message]
   (try+
    (if @log-token?
-     (let [input-token (:token credentials)
+     (let [input-token (docker-config/get-fb-token credentials)
            response-data (:data (request/debug-token app-token input-token))
            result (dissoc response-data :app_id)]
        (log (str prepend-message (generate-string result)))))

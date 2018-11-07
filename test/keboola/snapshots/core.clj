@@ -3,7 +3,7 @@
             [clj-http.fake :refer [with-global-fake-routes-in-isolation]]
             [clojure.test :as t :refer :all]
             clostache.parser
-            [keboola.docker.config :refer [load-config user-credentials]]
+            [keboola.docker.config :refer [load-config user-credentials get-fb-token]]
             [keboola.facebook.extractor.sync-actions :refer [disable-log-token]]
             [keboola.facebook.extractor.core :refer [prepare-and-run]]
             [keboola.facebook.extractor.output :refer [reset-columns-map]]
@@ -84,7 +84,7 @@
      (save-config-token-from-env dir-path)
      (prepare-and-run dir-path)
      (println "saving apicalls in " dirname)
-     (save-current-recording recording-path recording-ns (:token (user-credentials dir-path)))
+     (save-current-recording recording-path recording-ns (get-fb-token (user-credentials dir-path)))
      (println "creating test file " clj-compliant-name)
      (create-test-file dir-path ns-name recording-ns clj-compliant-name)
      (turn-recording-off)
