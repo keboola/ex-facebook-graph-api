@@ -2,6 +2,7 @@
   (:gen-class)
   (:require [clojure.core.async :as async]
             [clojure.string :as s]
+            [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :as runtime]
             [keboola.facebook.api.request :as request]
             [keboola.facebook.extractor.output :as output]
@@ -52,10 +53,6 @@
     (run-and-write user-token out-dir name query version))
   (runtime/log-strings "Run query" name "finished"))
 
-
-(defn parse-token [credentials]
-  (:token credentials))
-
 (defn check-ids [query all-ids]
   (let [ids (get-in query [:query :ids])
         has-ids-key (contains? (:query query) :ids)]
@@ -82,7 +79,7 @@
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
-  (let [token (parse-token credentials)
+  (let [token (docker-config/get-fb-token credentials)
         q (check-ids query all-ids)
         complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
         run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query)
