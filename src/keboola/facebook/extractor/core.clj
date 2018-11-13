@@ -32,7 +32,7 @@
          (log-error-and-exit (str "REQUEST LIMIT REACHED. Up to now extracted data will be uploaded to storage." msg))
          (user-error (str "Facebook api error:" msg)))))
    (catch Object e
-     (app-error (str "unexpected error:" e)))))
+     (app-error (str "unexpected error:" (with-out-str (clojure.stacktrace/print-stack-trace e)))))))
 
 (defn make-accounts-csv [parameters out-dir]
   (let [filepath (str out-dir "accounts")
