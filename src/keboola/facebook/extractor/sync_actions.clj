@@ -49,4 +49,4 @@
            result (dissoc response-data :app_id)]
        (log (str prepend-message (generate-string result)))))
    (catch Object e
-     (log (generate-string {:message "Failed to log token info" :error e})))))
+     (log (generate-string {:message "Failed to log token info" :error (:body e)})))))
