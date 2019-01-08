@@ -17,7 +17,6 @@
    (catch Object e
      (log (generate-string {:code (:status e 500) :error (:body e)})))))
 
-
 (defn adaccounts [credentials config]
   (try+
    (let [token (docker-config/get-fb-token credentials)
@@ -25,8 +24,7 @@
          accounts (request/get-adaccounts token :version version)]
      (log (generate-string accounts)))
    (catch Object e
-     (log (generate-string {:code (:status e 500) :error (:body e)}))))
-  )
+     (log (generate-string {:code (:status e 500) :error (:body e)})))))
 
 (defn igaccounts [credentials config]
   (try+
@@ -37,9 +35,7 @@
          result (map #(assoc (select-keys % [:name :category]) :id (-> % :instagram_business_account :id) :fb_page_id (:id %)) ig-accounts)]
      (log (generate-string result)))
    (catch Object e
-     (log (generate-string {:code (:status e 500) :error (:body e)}))))
-  )
-
+     (log (generate-string {:code (:status e 500) :error (:body e)})))))
 
 (defn log-debug-token [app-token credentials prepend-message]
   (try+

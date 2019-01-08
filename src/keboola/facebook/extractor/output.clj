@@ -28,8 +28,7 @@
     (concat used-prefered-columns (sort other-columns))))
 
 (def TABLES-SPECIFIC-PK-MAP
-  {
-   "insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
+  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
    "ratings" ["reviewer_id"]})
 
 (defn get-primary-key [table-columns table-name]
@@ -61,8 +60,6 @@
         (do
           (runtime/save-manifest manifest-path manifest)
           (swap! columns-map assoc manifest-path columns))))))
-
-
 
 (defn prepare-header [rows manifest-path]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
@@ -149,7 +146,6 @@
                (= error-strategy :throw-on-false-return) (throw+ (:error return-value))
                (= error-strategy :log-on-false-return) (runtime/log-error (:error return-value))))
            return-value)))
-
 
 (defn write-rows [rows out-dir qname-prefix]
   (let [sample (take sample-rows-count rows)

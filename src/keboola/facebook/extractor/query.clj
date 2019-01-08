@@ -14,7 +14,7 @@
     (output/write-rows all-rows out-dir prefix)))
 
 (defmacro swallow-exceptions [& body]
-    `(try ~@body (catch Exception e#)))
+  `(try ~@body (catch Exception e#)))
 
 (defn retrieve-page-access-token [id token version]
   (let [accounts (swallow-exceptions (request/get-accounts token :version version))
@@ -27,7 +27,6 @@
 (defn choose-token [id user-token version]
   (or (retrieve-page-access-token id user-token version) user-token))
 
-
 (defn- run-by-id-merge-and-write [token out-dir prefix query version]
   (let [ids-str (:ids query)
         prepare-query #(assoc query :ids %)
@@ -36,7 +35,6 @@
         all-merged-queries-rows (mapcat #(run-query %) ids-seq)
         all-rows (apply concat all-merged-queries-rows)]
     (output/write-rows all-rows out-dir prefix)))
-
 
 (defn run-nested-query [token out-dir {:keys [name query version]}]
   (if-let [ids-str (:ids query)]
