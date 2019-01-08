@@ -10,7 +10,7 @@
             [clojure.java.io :as io]))
 
 (def chan-buffer-size 300)
-(def sample-rows-count 3000)
+(def sample-rows-count 6000)
 
 (defn delete-file-if-empty [file-path]
   (if (= 0 (.length (io/file file-path)))
