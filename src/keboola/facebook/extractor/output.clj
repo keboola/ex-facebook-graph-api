@@ -137,9 +137,8 @@
      (catch Object e
        {:return false :error (str "failed write " table-name  " with error: " e)}))))
 
-
 (defn create-tables-map [tables-names value-fn]
-  (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
+  (into {} (map #(vector % (value-fn %)) tables-names)))
 
 (defn close-channels [table-map thread-chans-vec error-strategy]
   (doseq [[_ c] table-map]
@@ -165,6 +164,7 @@
              output-chan (tables-chans table-name)
              output-row (add-id-coloumns row)
              put-result (alt!! (timeout (* 30 1000)) :timed-out
+                               ;; put operation must be specified as nested vector [[channel_to_put value_to_put]]
                                [[output-chan output-row]] :sent)]
          (if (= put-result :timed-out)
            (throw+ (str "There was an error writing to table " table-name " data:" output-row)))))
