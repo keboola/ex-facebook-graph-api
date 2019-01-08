@@ -10,7 +10,7 @@
             [clojure.java.io :as io]))
 
 (def chan-buffer-size 300)
-(def sample-rows-count 3000)
+(def sample-rows-count 6000)
 
 (defn delete-file-if-empty [file-path]
   (if (= 0 (.length (io/file file-path)))
@@ -28,8 +28,7 @@
     (concat used-prefered-columns (sort other-columns))))
 
 (def TABLES-SPECIFIC-PK-MAP
-  {
-   "insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
+  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
    "ratings" ["reviewer_id"]})
 
 (defn get-primary-key [table-columns table-name]
@@ -61,8 +60,6 @@
         (do
           (runtime/save-manifest manifest-path manifest)
           (swap! columns-map assoc manifest-path columns))))))
-
-
 
 (defn prepare-header [rows manifest-path]
   (let [columns (set (mapcat #(-> % (dissoc :keboola) keys) rows))
@@ -137,9 +134,8 @@
      (catch Object e
        {:return false :error (str "failed write " table-name  " with error: " e)}))))
 
-
 (defn create-tables-map [tables-names value-fn]
-  (apply hash-map (mapcat #(list % (value-fn %)) tables-names)))
+  (into {} (map #(vector % (value-fn %)) tables-names)))
 
 (defn close-channels [table-map thread-chans-vec error-strategy]
   (doseq [[_ c] table-map]
@@ -150,7 +146,6 @@
                (= error-strategy :throw-on-false-return) (throw+ (:error return-value))
                (= error-strategy :log-on-false-return) (runtime/log-error (:error return-value))))
            return-value)))
-
 
 (defn write-rows [rows out-dir qname-prefix]
   (let [sample (take sample-rows-count rows)
@@ -165,6 +160,7 @@
              output-chan (tables-chans table-name)
              output-row (add-id-coloumns row)
              put-result (alt!! (timeout (* 30 1000)) :timed-out
+                               ;; put operation must be specified as nested vector [[channel_to_put value_to_put]]
                                [[output-chan output-row]] :sent)]
          (if (= put-result :timed-out)
            (throw+ (str "There was an error writing to table " table-name " data:" output-row)))))

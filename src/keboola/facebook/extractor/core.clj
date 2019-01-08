@@ -56,7 +56,7 @@
   (log-strings "Finished, total count of requests to facebook api:" @fb-requests-count))
 
 (defn prepare-and-run [datadir]
-  (let [ parameters (docker-config/parameters datadir)
+  (let [parameters (docker-config/parameters datadir)
         config (docker-config/config datadir)
         action (:action config)
         app-access-token (docker-config/app-access-token datadir)
