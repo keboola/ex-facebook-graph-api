@@ -11,7 +11,12 @@
 ; retry handler for IOExceptions
 (defn- retry-handler [ex try-count http-context]
   (Thread/sleep (* 1000 (Math/pow try-count 2)))
-  (if (> MAX_TRY_COUNT try-count) true false))
+  (if (> MAX_TRY_COUNT try-count)
+    (do
+      (runtime/log-strings "retrying request[" (str try-count) "]")
+      true)
+    ; else return false
+    false))
 
 (defn check-fb-requests [url]
   (if (str/starts-with? url "https://graph.facebook.com")
