@@ -23,13 +23,11 @@
   (check-fb-requests url)
   (method url (assoc (apply hash-map rest) :retry-handler retry-handler)))
 
-
 (defn GET [url & rest]
   (let [response (apply make-request http/get url rest)]
     (record-request response :get url rest)))
     ; (println "response" response)
-    
+
 
 (defn POST [url & rest]
   (apply make-request http/post url rest))
-  
