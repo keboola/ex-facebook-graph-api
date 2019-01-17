@@ -9,9 +9,14 @@
 (def fb-requests-count (atom 0))
 
 ; retry handler for IOExceptions
-(defn- retry-handler [ex try-count http-context]
-  (Thread/sleep (* 1000 (Math/pow try-count 2)))
-  (if (> MAX_TRY_COUNT try-count) true false))
+(defn retry-handler [ex try-count http-context]
+  (if (> MAX_TRY_COUNT try-count)
+    (do
+      (Thread/sleep (* 1000 (Math/pow try-count 2)))
+      (runtime/log-strings "retrying request[" (str try-count) "]")
+      true)
+    ; else return false
+    false))
 
 (defn check-fb-requests [url]
   (if (str/starts-with? url "https://graph.facebook.com")
@@ -23,13 +28,11 @@
   (check-fb-requests url)
   (method url (assoc (apply hash-map rest) :retry-handler retry-handler)))
 
-
 (defn GET [url & rest]
   (let [response (apply make-request http/get url rest)]
     (record-request response :get url rest)))
     ; (println "response" response)
-    
+
 
 (defn POST [url & rest]
   (apply make-request http/post url rest))
-  

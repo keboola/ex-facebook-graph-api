@@ -2,7 +2,6 @@
   (:require [clojure.walk :refer [postwalk postwalk-demo]]
             [cheshire.core :refer [generate-string]]))
 
-
 (def recording (atom '()))
 (def do-recording? (atom false))
 
@@ -12,16 +11,15 @@
 (defn turn-recording-off [] (reset! do-recording? false))
 
 (def VALID-CHARS
- (map char (concat (range 48 58) ; 0-9
-            (range 66 91) ; A-Z
-            (range 97 123)))) ; a-z
+  (map char (concat (range 48 58) ; 0-9
+                    (range 66 91) ; A-Z
+                    (range 97 123)))) ; a-z
 
 (defn random-char []
- (nth VALID-CHARS (rand (count VALID-CHARS))))
+  (nth VALID-CHARS (rand (count VALID-CHARS))))
 
 (defn random-str [length]
   (apply str (take length (repeatedly random-char))))
-
 
 (def keywords-to-anonymize #{:name :story :caption :message :description :title :account_name :campaign_name})
 (defn- anonymize-item [item]
@@ -62,8 +60,7 @@
   (apply str (mapcat (fn [r]
                        (let [request (postwalk #(replace-token % token) (:request r))
                              response (postwalk #(replace-token % token) (:response r))
-                             shaved-response (select-keys response [:status :body])
-                             ]
+                             shaved-response (select-keys response [:status :body])]
                          [(pprint request)
                           (str "(fn [req]" (pprint shaved-response) ")")]))
                      @recording)))
