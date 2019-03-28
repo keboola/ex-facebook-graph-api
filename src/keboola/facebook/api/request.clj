@@ -7,7 +7,7 @@
               [clojure.string :as string]))
 
 (def graph-api-url "https://graph.facebook.com/")
-(def default-version "v2.12")
+(def default-version "v3.2")
 
 (s/fdef make-url
         :args (s/or :path-only (s/cat :path string?)
