@@ -31,11 +31,16 @@
   {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
    "ratings" ["reviewer_id"]})
 
-(defn get-primary-key [table-columns table-name]
-  (let [basic-pk ["parent_id"]
+(def ENDPOINT-SPECIFIC-PK-MAP
+  {"" ["ad_id"]})
+
+(defn get-primary-key [table-columns table-name context]
+  (let [endpoint (:path context)
+        basic-pk ["parent_id"]
         all-tables-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]
         table-only-pk  (TABLES-SPECIFIC-PK-MAP table-name #{})
-        extended-pk (concat all-tables-pk table-only-pk)]
+        endpoint-only-pk (ENDPOINT-SPECIFIC-PK-MAP endpoint #{})
+        extended-pk (concat all-tables-pk table-only-pk endpoint-only-pk)]
     (concat basic-pk
             (filter
              (fn [column] (some #(= % (keyword column)) table-columns))
@@ -53,9 +58,9 @@
 (def columns-map (atom {}))
 (defn reset-columns-map [] (reset! columns-map {}))
 
-(defn write-manifest [manifest-path columns is-write? table-name]
+(defn write-manifest [manifest-path columns is-write? table-name context]
   (if is-write?
-    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name) :columns columns}]
+    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name context) :columns columns}]
       (if (not (contains? @columns-map manifest-path))
         (do
           (runtime/save-manifest manifest-path manifest)
@@ -83,10 +88,11 @@
   (let [first-write? (:first-write? memo)
         header (if first-write?
                  (prepare-header (:buffer memo) manifest-path)
-                 (:header memo))]
+                 (:header memo))
+        context (-> memo :buffer first :keboola)]
     (if header
       (do
-        (write-manifest manifest-path header first-write? table-name)
+        (write-manifest manifest-path header first-write? table-name context)
         (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))

@@ -143,7 +143,7 @@
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [ex-account-id parent-id fb-graph-node table-name body-data response] :as init-params}]
+  [{:keys [ex-account-id parent-id fb-graph-node table-name path body-data response] :as init-params}]
   ((fn step [params this-object-data rest-objects top-node]
             (if (and (empty? rest-objects) (empty? this-object-data))
               nil
@@ -158,6 +158,7 @@
                                       :parent-id (:parent-id next-object)
                                       :fb-graph-node (:fb-graph-node next-object)
                                       :table-name (:name next-object)
+                                      :path path
                                       :response (:data next-object)
                                       :body-data (:data (:data next-object)))]
                 (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
@@ -184,6 +185,7 @@
           :parent-id (name (first %))
           :fb-graph-node "page"
           :table-name "page"
+          :path path
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
           :response response-body})
 
@@ -195,6 +197,7 @@
           :parent-id ""
           :fb-graph-node "page"
           :table-name "page"
+          :path path
           :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
           :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
 
