@@ -27,19 +27,23 @@
 (defn choose-token [id user-token version]
   (or (retrieve-page-access-token id user-token version) user-token))
 
-(defn- run-by-id-merge-and-write [token out-dir prefix query version]
-  (let [ids-str (:ids query)
-        prepare-query #(assoc query :ids %)
-        run-query (fn [id] (request/nested-request (choose-token id token version) (prepare-query id) :version version))
-        ids-seq (s/split ids-str #",")
-        all-merged-queries-rows (mapcat #(run-query %) ids-seq)
-        all-rows (apply concat all-merged-queries-rows)]
-    (output/write-rows all-rows out-dir prefix)))
+(defn- run-by-id-merge-and-write
+  ([token out-dir prefix query version] (run-by-id-merge-and-write token out-dir prefix query version choose-token))
+  ([token out-dir prefix query version choose-token-fn]
+   (let [ids-str (:ids query)
+         prepare-query #(assoc query :ids %)
+         run-query (fn [id] (request/nested-request (choose-token-fn id token version) (prepare-query id) :version version))
+         ids-seq (s/split ids-str #",")
+         all-merged-queries-rows (mapcat #(run-query %) ids-seq)
+         all-rows (apply concat all-merged-queries-rows)]
+     (output/write-rows all-rows out-dir prefix))))
 
-(defn run-nested-query [token out-dir {:keys [name query version]}]
+(defn run-nested-query [token out-dir {:keys [name query version run-by-id?]}]
   (if-let [ids-str (:ids query)]
-    (doseq [ids (partition-all 50 (s/split ids-str #","))]
-      (run-and-write token out-dir name (assoc query :ids (s/join "," ids)) version))
+    (if run-by-id?
+      (run-by-id-merge-and-write token out-dir name query version (constantly token))
+      (doseq [ids (partition-all 50 (s/split ids-str #","))]
+        (run-and-write token out-dir name (assoc query :ids (s/join "," ids)) version)))
     ;else if no ids then run the whole query
     (run-and-write token out-dir name query version))
   (runtime/log-strings "Run query" name "finished"))
@@ -79,7 +83,7 @@
   (runtime/log-strings "Run query:" query)
   (let [token (docker-config/get-fb-token credentials)
         q (check-ids query all-ids)
-        complete-query {:query (:query q) :name (:name q) :version (:api-version q)}
+        complete-query {:query (:query q) :name (:name q) :version (:api-version q) :run-by-id? (:run-by-id q)}
         run-with-page-token #(run-nested-query-with-page-token token out-dir complete-query)
         run-with-user-token #(run-nested-query token out-dir complete-query)
         run-query #(if (need-page-token? (:query query)) (run-with-page-token) (run-with-user-token))]
