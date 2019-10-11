@@ -21,7 +21,7 @@
 (defn random-str [length]
   (apply str (take length (repeatedly random-char))))
 
-(def keywords-to-anonymize #{:name :story :caption :message :description :title :account_name :campaign_name})
+(def keywords-to-anonymize #{:name :story :caption :message :description :title :account_name :campaign_name :ad_name :impressions})
 (defn- anonymize-item [item]
   (if (and
        (vector? item)
