@@ -32,7 +32,12 @@
    "ratings" ["reviewer_id"]})
 
 (def ENDPOINT-SPECIFIC-PK-MAP
-  {"" ["ad_id"]})
+  {"" ["ad_id" "adset_id"]})
+(def SUBSTITUTE-PK-MAP
+  {"adset_id" "ad_id"})
+
+(defn table-has-column? [table-columns column]
+  (some #(= % (keyword column)) table-columns))
 
 (defn get-primary-key [table-columns table-name context]
   (let [endpoint (:path context)
@@ -43,7 +48,9 @@
         extended-pk (concat all-tables-pk table-only-pk endpoint-only-pk)]
     (concat basic-pk
             (filter
-             (fn [column] (some #(= % (keyword column)) table-columns))
+             (fn [column]
+               (and (table-has-column? table-columns column)
+                    (not (table-has-column? table-columns (get SUBSTITUTE-PK-MAP column "")))))
              extended-pk))))
 
 (defn get-table-name [row]
