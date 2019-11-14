@@ -19,5 +19,7 @@
   (test-pk (sut/get-primary-key [:id :key1 :foo :key2] "" {}) ["id" "key1" "key2"])
   (test-pk (sut/get-primary-key [:id :key1 :foo :key2] "" {:path ""}) ["id" "key1" "key2"])
   (test-pk (sut/get-primary-key [:id :key1 :foo :key2 :ad_id] "" {:path ""}) ["id" "key1" "key2" "ad_id"])
+  (test-pk (sut/get-primary-key [:id :key1 :foo :key2 :ad_id :adset_id] "" {:path ""}) ["id" "key1" "key2" "ad_id"])
+  (test-pk (sut/get-primary-key [:id :key1 :foo :key2 :adset_id] "" {:path ""}) ["id" "key1" "key2" "adset_id"])
   (test-pk (sut/get-primary-key [:id :key1 :foo :key2 :ad_id] "" {:path "ads"}) ["id" "key1" "key2"])
   (test-pk (sut/get-primary-key [:id :key1 :foo :key2 :reviewer_id] "ratings" {}) ["id" "key1" "key2" "reviewer_id"]))
