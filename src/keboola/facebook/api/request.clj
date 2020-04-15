@@ -46,20 +46,21 @@
 
 (defn skip-error-exception? [e]
   (if-let [status (:status e)]
-      (and
-       (<= 400 status 500)
-       (or
-        (re-find #"Media Posted Before Business Account Conversion" (:body e))))))
+    (and
+     (<= 400 status 500)
+     (or
+      (re-find #"Media Posted Before Business Account Conversion" (:body e))))))
 
 (defn retry-exception? [e]
   (if-let [status (:status e)]
-      (and
-       (<= 500 status 600)
-       (or
-        (re-find #"Sorry, something went wrong" (:body e))
-        (re-find #"An unknown error occurred" (:body e))
-        (re-find #"An unexpected error has occurred. Please retry" (:body e))
-        (re-find #"Please reduce the amount of data" (:body e))))))
+    (or (and
+         (<= 500 status 600)
+         (or
+          (re-find #"Sorry, something went wrong" (:body e))
+          (re-find #"An unknown error occurred" (:body e))
+          (re-find #"An unexpected error has occurred. Please retry" (:body e))
+          (re-find #"Please reduce the amount of data" (:body e))))
+        (re-find #"This method must be called with a Page Access Token" (:body e)))))
 
 (def MIN_TRY_LIMIT_COUNT 3)
 (def MIN_TRY_LIMIT 1)
@@ -209,7 +210,6 @@
            (if (some? (-> response :paging :next))
              (collect-result (:body (api-fn (-> response :paging :next))) api-fn))))))
 
-
 (defn- get-request [access-token path & {:keys [query version]}]
   (let [query-params (assoc query :access_token access-token)
         request-fn (fn [url] (client/GET url :query-params query-params :as :json))
@@ -218,7 +218,6 @@
     (collect-result
      (:body (request-fn full-url))
      request-fn)))
-
 
 (defn get-accounts [access-token & {:keys [version]}]
   (apply concat (get-request access-token "me/accounts" :version version)))
