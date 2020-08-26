@@ -49,7 +49,7 @@
     (and
      (<= 400 status 500)
      (or
-      (re-find #"Media Posted Before Business Account Conversion" (:body e))))))
+      (re-find #"(?i)media posted before business account conversion" (:body e))))))
 
 (defn retry-exception? [e]
   (if-let [status (:status e)]
