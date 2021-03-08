@@ -76,7 +76,7 @@
 (defn need-page-token? [query]
   (and (runtime/keboola-ex-facebook-component?)
        (or (query-contains-insights? query)
-           (not (query-path-feed? query))
+           (query-path-feed? query)
            (query-need-userinfo? query))))
 
 (defn run-query [query all-ids credentials out-dir]
