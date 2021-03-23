@@ -93,7 +93,7 @@
                               :video_avg_percent_watched_actions :video_avg_sec_watched_actions
                               :video_avg_time_watched_actions :video_complete_watched_actions
                               :video_p100_watched_actions :video_p25_watched_actions
-                              :video_p50_watched_actions :video_p75_watched_actions :cost_per_conversion
+                              :video_p50_watched_actions :video_p75_watched_actions :cost_per_conversion :cost_per_outbound_click
                               :video_p95_watched_actions :website_ctr :website_purchase_roas :outbound_clicks :conversions :video_play_actions :video_thruplay_watched_actions})
 #_(s/fdef flatten-array
         :args (s/cat :array (s/coll-of ::ds/insights) :array-name (s/or :val :values))
