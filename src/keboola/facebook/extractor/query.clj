@@ -69,6 +69,10 @@
 (defn query-path-feed? [{:keys [path] :or {path ""}}]
   (string/includes? (or path "") "feed"))
 
+(defn query-path-ratings? [{:keys [path] :or {path ""}}]
+  (string/includes? (or path "") "ratings"))
+
+
 (defn query-need-userinfo? [{:keys [fields path] :or {fields "" path ""}}]
   (or (some #(string/includes? (or fields "") %) ["likes" "from" "username"])
       (string/includes? (or path "") "likes")))
@@ -76,6 +80,7 @@
 (defn need-page-token? [query]
   (and (runtime/keboola-ex-facebook-component?)
        (or (query-contains-insights? query)
+           (query-path-ratings? query)
            (query-path-feed? query)
            (query-need-userinfo? query))))
 
