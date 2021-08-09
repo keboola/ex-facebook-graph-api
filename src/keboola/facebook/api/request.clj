@@ -10,10 +10,10 @@
 (def default-version "v5.0")
 
 (s/fdef make-url
-        :args (s/or :path-only (s/cat :path string?)
-                    :path-and-version (s/cat :path string? :version string?))
-        :fn #(-> % :ret (clojure.string/starts-with? graph-api-url))
-        :ret string?)
+  :args (s/or :path-only (s/cat :path string?)
+              :path-and-version (s/cat :path string? :version string?))
+  :fn #(-> % :ret (clojure.string/starts-with? graph-api-url))
+  :ret string?)
 
 (defn make-url
   "return absolute url to fb api given relative @path and @version"
@@ -128,15 +128,13 @@
   (if-let [next-page-url (get-next-page-url response)] ; process next api page if exists
     (let [new-response (:body (make-get-request next-page-url))]
       (cond (contains? new-response :data)
-            [{
-              :parent-id (:parent-id params)
+            [{:parent-id (:parent-id params)
               :fb-graph-node (:fb-graph-node params)
               :name (:table-name params)
               :data new-response}]
 
             (contains? new-response (keyword ex-account-id))
-            [{
-              :parent-id ex-account-id
+            [{:parent-id ex-account-id
               :fb-graph-node top-node
               :name top-node
               :data new-response}]
@@ -149,28 +147,27 @@
   Returns lazy sequence of flattened data resulting from processing the whole query"
   [{:keys [ex-account-id parent-id fb-graph-node table-name path body-data response] :as init-params}]
   ((fn step [params this-object-data rest-objects top-node]
-            (if (and (empty? rest-objects) (empty? this-object-data))
-              nil
-              (let [
-                    new-rows (mapcat #(extract-values % (dissoc params :body-data :response) ex-account-id) this-object-data)
+     (if (and (empty? rest-objects) (empty? this-object-data))
+       nil
+       (let [new-rows (mapcat #(extract-values % (dissoc params :body-data :response) ex-account-id) this-object-data)
 
-                    next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
-                    nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
-                    all-objects (concat nested-objects rest-objects)
-                    next-object (first all-objects)
-                    new-params (assoc params
-                                      :parent-id (:parent-id next-object)
-                                      :fb-graph-node (:fb-graph-node next-object)
-                                      :table-name (:name next-object)
-                                      :path path
-                                      :response (:data next-object)
-                                      :body-data (:data (:data next-object)))]
-                (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
+             next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
+             nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
+             all-objects (concat nested-objects rest-objects)
+             next-object (first all-objects)
+             new-params (assoc params
+                               :parent-id (:parent-id next-object)
+                               :fb-graph-node (:fb-graph-node next-object)
+                               :table-name (:name next-object)
+                               :path path
+                               :response (:data next-object)
+                               :body-data (:data (:data next-object)))]
+         (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
 
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
-  [access-token {:keys [fields ids path limit since until] :as whole-query} & {:keys [ version]}]
+  [access-token {:keys [fields ids path limit since until] :as whole-query} & {:keys [version]}]
   (let [preparsed-fields (parser/preparse-fields fields)
         preparsed-since (parser/preparse-fields (or since ""))
         preparsed-until (parser/preparse-fields (or until ""))
@@ -184,8 +181,7 @@
     (if (some? ids)
       (mapcat
        #(page-and-collect
-         {
-          :ex-account-id (name (first %))
+         {:ex-account-id (name (first %))
           :parent-id (name (first %))
           :fb-graph-node "page"
           :table-name "page"
@@ -196,14 +192,13 @@
        response-body)
        ;else - no ids response
       (page-and-collect
-       {
-          :ex-account-id ""
-          :parent-id ""
-          :fb-graph-node "page"
-          :table-name "page"
-          :path path
-          :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
-          :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
+       {:ex-account-id ""
+        :parent-id ""
+        :fb-graph-node "page"
+        :table-name "page"
+        :path path
+        :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
+        :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
 
 
 (defn- collect-result [response api-fn]
