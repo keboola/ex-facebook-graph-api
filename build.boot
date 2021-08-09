@@ -67,6 +67,3 @@ record api calls, create snapshot tests with recrded api calls and compare resul
          conj 'cider.nrepl/cider-middleware)
   (repl :bind "0.0.0.0" :port 1111)
   )
-
-(defn -main [& args]
-  (println "Hello Tomas"))
