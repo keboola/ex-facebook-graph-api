@@ -2,8 +2,8 @@
   (:require [keboola.docker.runtime :as runtime]))
 
 (def time-slot-ms 100)
-(def truncate 10)
-(def MAX_WAIT_TIME (* 1000 60 60))
+(def truncate 5)
+(def MAX_WAIT_TIME (* 1000 60 60 2))
 
 (defn with-exp-backoff [action!]
   (loop [c 0

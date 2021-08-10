@@ -206,8 +206,8 @@
         completed? (= status "Job Completed")
         failed? (some (partial = status)  ["Job Failed" "Job Skipped"])]
     (cond
-      (not status) (runtime/app-error "Polling failed with unknown status" (:body poll-response))
-      failed?  (runtime/user-error "Polling failed with status:" status (:body poll-response))
+      (not status) (runtime/app-error (str "Polling failed with unknown status" (:body poll-response)))
+      failed?  (runtime/user-error (str "Polling failed with status:" status (:body poll-response)))
       completed? (do (log-strings "Polling finished with status:" status) (:body poll-response))
       :else
       nil)))
