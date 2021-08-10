@@ -1,10 +1,12 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec.alpha :as s]
+              [keboola.facebook.api.exponential-backoff :refer [with-exp-backoff]]
               [keboola.facebook.api.parser :as parser]
               [keboola.docker.runtime :refer [log-strings app-error log-error]]
               [slingshot.slingshot :refer [try+ throw+]]
               [keboola.http.client :as client]
-              [clojure.string :as string]))
+              [clojure.string :as string]
+              [keboola.docker.runtime :as runtime]))
 
 (def graph-api-url "https://graph.facebook.com/")
 (def default-version "v5.0")
@@ -188,7 +190,6 @@
           :path path
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
           :response response-body})
-
        response-body)
        ;else - no ids response
       (page-and-collect
@@ -200,6 +201,45 @@
         :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
         :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
 
+(defn- job-finished? [poll-response]
+  (let [status (-> poll-response :body :async_status)
+        completed? (= status "Job Completed")
+        failed? (some (partial = status)  ["Job Failed" "Job Skipped"])]
+    (cond
+      (not status) (runtime/app-error "Polling failed with unknown status" (:body poll-response))
+      failed?  (runtime/user-error "Polling failed with status:" status (:body poll-response))
+      completed? (do (log-strings "Polling finished with status:" status) (:body poll-response))
+      :else
+      nil)))
+
+(defn- poll-async-request [report_run_id access-token version]
+  (let [url (str (make-url report_run_id version) "?access_token=" access-token)
+        request-fn #(client/GET url :as :json)
+        finished?-fn #(job-finished? (request-fn))]
+    (log-strings "Started polling for insights job report:" report_run_id)
+    (with-exp-backoff finished?-fn)))
+
+(defn- collect-async-insights-result [access-token ad-account-id report-run-id version]
+  (let [url (str (make-url report-run-id version) "/insights/?access_token=" access-token)
+        response (make-get-request url)
+        response-body (:body response)]
+    ;(println "response-body" response-body)
+    (page-and-collect
+     {:ex-account-id ad-account-id
+      :parent-id ad-account-id
+      :fb-graph-node "page"
+      :table-name "page"
+      :path "insights"
+      :body-data [{"insights" response-body}]
+      :response nil})))
+
+(defn async-insights-request [access-token ad-account-id parameters version]
+  (let [url (make-url (str ad-account-id "/insights") version)
+        url-params (str parameters "&access_token=" access-token)
+        whole-url (str url "?" url-params)
+        report-run-id (-> (client/POST whole-url :as :json) :body :report_run_id)]
+    (poll-async-request report-run-id access-token version)
+    (collect-async-insights-result access-token ad-account-id report-run-id version)))
 
 (defn- collect-result [response api-fn]
   (lazy-seq
