@@ -1,0 +1,42 @@
+{
+  "storage" : { },
+  "parameters" : {
+    "accounts" : {
+      "act_522606278080331" : {
+        "account_id" : "522606278080331",
+        "business_name" : "My bussiness",
+        "currency" : "CZK",
+        "id" : "act_522606278080331",
+        "name" : "My bussines"
+      }
+    },
+    "api-version" : "v10.0",
+    "queries" : [ {
+      "name" : "query",
+      "type" : "async-insights-query",
+      "disabled" : false,
+      "query" : {
+        "parameters" : "fields=account_id,campaign_id,actions&action_breakdowns=action_reaction&date_preset=last_3d&time_increment=1&level=account",
+        "ids" : ""
+      }
+    } ]
+  },
+  "authorization" : {
+    "oauth_api" : {
+      "id" : "keboola.ex-facebook-ads",
+      "credentials" : {
+        "id" : "main",
+        "authorizedFor" : "Myself",
+        "creator" : {
+          "id" : "1234",
+          "description" : "me@keboola.com"
+        },
+        "created" : "2016-01-31 00:13:30",
+        "oauthVersion" : "facebook",
+        "appKey" : "xxx",
+        "#data" : "{\"token\":\"XXTOKENXX\"}",
+        "#appSecret" : "KBC::Encrypted==ENCODEDSTRING=="
+      }
+    }
+  }
+}
