@@ -84,6 +84,15 @@
            (query-path-feed? query)
            (query-need-userinfo? query))))
 
+(defn run-async-insights-query [token out-dir name query version]
+  (let [ids-str (:ids query)
+        parameters (:parameters query)
+        run-query (fn [id] (request/async-insights-request token id parameters version))
+        ids-seq (s/split ids-str #",")
+        all-merged-queries-rows (mapcat #(run-query %) ids-seq)
+        all-rows (apply concat all-merged-queries-rows)]
+    (output/write-rows all-rows out-dir name)))
+
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
   (let [token (docker-config/get-fb-token credentials)
@@ -93,4 +102,5 @@
         run-with-user-token #(run-nested-query token out-dir complete-query)
         run-query #(if (need-page-token? (:query query)) (run-with-page-token) (run-with-user-token))]
     (case (:type query)
-      "nested-query" (run-query))))
+      "nested-query" (run-query)
+      "async-insights-query" (run-async-insights-query token out-dir (:name q) (:query q) (:api-version q)))))
