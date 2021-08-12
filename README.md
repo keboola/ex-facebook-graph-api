@@ -85,8 +85,28 @@ In configuration under parameters there is an array of `queries`(see sample conf
  }
  ```
 
+### Async Insights Query
+
+ Sometimes when extracting ads insights via nested query returns "Please reduce the amount of data you're asking for". In such case it is better to use `async-insights-query`, that extracts ads insights asynchronously and should deal with asking bigger amount of data. The query specification is similar nested query, however it only contains 2
+ - `parameters` - URL query string specifiying ads insights parameters as described in https://developers.facebook.com/docs/marketing-api/reference/adgroup/insights/. The parameters are separated by `&`, e.g. `fields=ad_id,actions&level=ad&action_breakdowns=action_type&date_preset=last_month&time_increment=1`
+ - `ids` - comma separated list of ids(typically page-ids) that will be prepended with path. It is also a parameter of graph api. If empty string than all ids from `accounts` object will be used. Can also be completely removed from the query.
+
+#### Sample async insights query
+```
+{
+  "id": 3,
+  "name": "ads_async_insights",
+  "type": "async-insights-query",
+  "query": {
+    "parameters": "fields=ad_id,actions&level=ad&action_breakdowns=action_type&date_preset=last_month&time_increment=1",
+    "ids": "<page_id>"
+  }
+}
+```
+
 ### Sample configuration:
-Note that you can specify facebook api version via `api-version` parameter. Default is **v2.8**.
+Note that you can specify facebook api version via `api-version` parameter. Default is **v5.0**.
+
 ```
 {
   "storage": {},
@@ -103,7 +123,7 @@ Note that you can specify facebook api version via `api-version` parameter. Defa
         "category": "software"
       }
     },
-    "api-version": "v2.8",
+    "api-version": "v5.0",
     "queries": [
       {
         "id": 1,
@@ -113,6 +133,15 @@ Note that you can specify facebook api version via `api-version` parameter. Defa
           "path": "feed",
           "fields": "message,story,likes,comments{from}",
           "ids": "<pagId1>,<pageId2>"
+        }
+      },
+      {
+        "id": 3,
+        "name": "ads_async_insights",
+        "type": "async-insights-query",
+        "query": {
+          "parameters": "fields=ad_id,actions&level=ad&action_breakdowns=action_type&date_preset=last_month&time_increment=1",
+          "ids": "<page_id>"
         }
       }
     ]

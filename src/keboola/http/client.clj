@@ -35,4 +35,5 @@
 
 
 (defn POST [url & rest]
-  (apply make-request http/post url rest))
+  (let [response (apply make-request http/post url rest)]
+    (record-request response :post url rest)))
