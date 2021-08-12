@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/keboola/ex-facebook-graph-api.svg?branch=master)](https://travis-ci.org/keboola/ex-facebook-graph-api)
+[![Build Status](https://travis-ci.com/keboola/ex-facebook-graph-api.svg?branch=master)](https://travis-ci.com/keboola/ex-facebook-graph-api)
 
 [![Docker Repository on Quay](https://quay.io/repository/keboola/ex-facebook-graph-api/status "Docker Repository on Quay")](https://quay.io/repository/keboola/ex-facebook-graph-api)
 
