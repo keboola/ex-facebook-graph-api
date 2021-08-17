@@ -28,7 +28,7 @@
     (concat used-prefered-columns (sort other-columns))))
 
 (def TABLES-SPECIFIC-PK-MAP
-  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
+  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region" "ad_id" "adset_id"]
    "ratings" ["reviewer_id"]})
 
 (def ENDPOINT-SPECIFIC-PK-MAP
