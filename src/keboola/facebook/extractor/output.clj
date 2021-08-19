@@ -28,7 +28,7 @@
     (concat used-prefered-columns (sort other-columns))))
 
 (def TABLES-SPECIFIC-PK-MAP
-  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region" "ad_id" "adset_id"]
+  {"insights" ["age" "country" "dma" "gender" "frequency_value" "hourly_stats_aggregated_by_advertiser_time_zone" "hourly_stats_aggregated_by_audience_time_zone" "impression_device" "place_page_id" "placement" "publisher_platform" "platform_position" "device_platform" "product_id" "region"]
    "ratings" ["reviewer_id"]})
 
 (def ENDPOINT-SPECIFIC-PK-MAP
@@ -36,22 +36,26 @@
 (def SUBSTITUTE-PK-MAP
   {"adset_id" "ad_id"})
 
+(def ASYNC-INSIGHTS-PK
+  ["ad_id" "adset_id"])
+
 (defn table-has-column? [table-columns column]
   (some #(= % (keyword column)) table-columns))
 
-(defn get-primary-key [table-columns table-name context]
+(defn get-primary-key [table-columns table-name context async-insights?]
   (let [endpoint (:path context)
         basic-pk ["parent_id"]
         all-tables-pk ["id" "key1" "key2" "end_time" "account_id" "campaign_id" "date_start" "date_stop" "ads_action_name" "action_type" "action_reaction"]
         table-only-pk  (TABLES-SPECIFIC-PK-MAP table-name #{})
         endpoint-only-pk (ENDPOINT-SPECIFIC-PK-MAP endpoint #{})
-        extended-pk (concat all-tables-pk table-only-pk endpoint-only-pk)]
-    (concat basic-pk
-            (filter
-             (fn [column]
-               (and (table-has-column? table-columns column)
-                    (not (table-has-column? table-columns (get SUBSTITUTE-PK-MAP column "")))))
-             extended-pk))))
+        async-insights-pk (if async-insights? ASYNC-INSIGHTS-PK #{})
+        extended-pk (concat all-tables-pk table-only-pk endpoint-only-pk async-insights-pk)]
+    (dedupe (concat basic-pk
+                    (filter
+                     (fn [column]
+                       (and (table-has-column? table-columns column)
+                            (or async-insights? (not (table-has-column? table-columns (get SUBSTITUTE-PK-MAP column ""))))))
+                     extended-pk)))))
 
 (defn get-table-name [row]
   (-> row :keboola :table-name))
@@ -65,9 +69,9 @@
 (def columns-map (atom {}))
 (defn reset-columns-map [] (reset! columns-map {}))
 
-(defn write-manifest [manifest-path columns is-write? table-name context]
+(defn write-manifest [manifest-path columns is-write? table-name context async-insights?]
   (if is-write?
-    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name context) :columns columns}]
+    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name context async-insights?) :columns columns}]
       (if (not (contains? @columns-map manifest-path))
         (do
           (runtime/save-manifest manifest-path manifest)
@@ -91,7 +95,7 @@
     ; by default return nil saying we have no data to save
 
 
-(defn flush-buffer [csv-file manifest-path table-name memo]
+(defn flush-buffer [csv-file manifest-path table-name memo async-insights?]
   (let [first-write? (:first-write? memo)
         header (if first-write?
                  (prepare-header (:buffer memo) manifest-path)
@@ -99,7 +103,7 @@
         context (-> memo :buffer first :keboola)]
     (if header
       (do
-        (write-manifest manifest-path header first-write? table-name context)
+        (write-manifest manifest-path header first-write? table-name context async-insights?)
         (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
@@ -110,9 +114,9 @@
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
 
-(defn process-row [row csv-file manifest-path table-name memo]
+(defn process-row [row csv-file manifest-path table-name memo async-insights?]
   (if (= (count (:buffer memo)) chan-buffer-size)
-    (let [header (flush-buffer csv-file manifest-path table-name memo)]
+    (let [header (flush-buffer csv-file manifest-path table-name memo async-insights?)]
       {:cnt (inc (:cnt memo)) :header header :buffer (list row) :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
@@ -120,7 +124,7 @@
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
 
-(defn create-write-thread [table-name input-ch out-dir qname-prefix]
+(defn create-write-thread [table-name input-ch out-dir qname-prefix async-insights?]
   (async/thread
     (try+
      (let [kbc-table-name (if (= (last (split qname-prefix #"_")) table-name)
@@ -134,9 +138,9 @@
          (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
            (let [row (<!! input-ch)]
              (if (some? row)
-               (recur (process-row row out-file sliced-dir-path table-name memo))
+               (recur (process-row row out-file sliced-dir-path table-name memo async-insights?))
                ;; else input-ch has closed -> don't call recur,
-               (if (some? (flush-buffer out-file sliced-dir-path table-name memo))
+               (if (some? (flush-buffer out-file sliced-dir-path table-name memo async-insights?))
                  (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))))))
                ;; thread terminates
 
@@ -160,11 +164,11 @@
                (= error-strategy :log-on-false-return) (runtime/log-error (:error return-value))))
            return-value)))
 
-(defn write-rows [rows out-dir qname-prefix]
+(defn write-rows [rows out-dir qname-prefix async-insights?]
   (let [sample (take sample-rows-count rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix))
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix async-insights?))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
     (try+
