@@ -11,7 +11,7 @@
 (defn- run-and-write [token out-dir prefix query version]
   (let [nested-data (request/nested-request token query :version version)
         all-rows (apply concat nested-data)]
-    (output/write-rows all-rows out-dir prefix)))
+    (output/write-rows all-rows out-dir prefix false)))
 
 (defmacro swallow-exceptions [& body]
   `(try ~@body (catch Exception e#)))
@@ -36,7 +36,7 @@
          ids-seq (s/split ids-str #",")
          all-merged-queries-rows (mapcat #(run-query %) ids-seq)
          all-rows (apply concat all-merged-queries-rows)]
-     (output/write-rows all-rows out-dir prefix))))
+     (output/write-rows all-rows out-dir prefix false))))
 
 (defn run-nested-query [token out-dir {:keys [name query version run-by-id?]}]
   (if-let [ids-str (:ids query)]
@@ -91,7 +91,7 @@
         ids-seq (s/split ids-str #",")
         all-merged-queries-rows (mapcat #(run-query %) ids-seq)
         all-rows (apply concat all-merged-queries-rows)]
-    (output/write-rows all-rows out-dir name)))
+    (output/write-rows all-rows out-dir name true)))
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
