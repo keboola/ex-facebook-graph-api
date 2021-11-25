@@ -9,6 +9,7 @@
                  [org.clojure/tools.cli "0.4.1"]
                  [semantic-csv "0.2.0"]
                  [org.clojure/data.csv "1.0.0"]
+                 [org.clojure/data.json "2.4.0"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/core.async "1.3.618"]
                  [adzerk/boot-test "1.2.0" :scope "test"]

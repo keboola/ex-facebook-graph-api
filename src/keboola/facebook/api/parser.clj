@@ -3,6 +3,7 @@
               [keboola.facebook.api.specs :as ds]
               [keboola.docker.runtime :refer [app-error]]
               [clj-time.core :as t]
+              [clojure.data.json :as json]
               [clj-time.format :refer [formatter unparse]]
               [clojure.string :as string]))
 
@@ -32,8 +33,6 @@
      :data {:data [(:summary object)]}
      :parent-id (or (:id row) (:parent-id params))
      :fb-graph-node (str (:fb-graph-node params) "_" object-name)}))
-
-
 
 (s/fdef get-nested-objects
   :args (s/cat :body-data ::ds/data
@@ -94,9 +93,9 @@
                               :video_p100_watched_actions :video_p25_watched_actions
                               :video_p50_watched_actions :video_p75_watched_actions :cost_per_conversion :cost_per_outbound_click
                               :video_p95_watched_actions :website_ctr :website_purchase_roas :outbound_clicks :conversions :video_play_actions :video_thruplay_watched_actions})
-#_(s/fdef flatten-array
-    :args (s/cat :array (s/coll-of ::ds/insights) :array-name (s/or :val :values))
-    :ret (s/* (s/map-of keyword? ::ds/table-value)))
+
+(def serialized-objects-types #{:issues_info :frequency_control_specs})
+
 (defn flatten-array
   "flattens array of object with same structure prefixing its keys with array-name
   returns list of key-value pairs"
@@ -105,6 +104,8 @@
         (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
         (some? (ads-action-stats-types array-name))
         (map #(assoc % :ads_action_name (name array-name)) array)
+        (some? (serialized-objects-types array-name))
+        (map #(assoc {} array-name (json/write-str %)) array)
         (and (= array-name :media) (empty? array)) '()
         :else (app-error (str "unsuported array:" array-name array))))
 
