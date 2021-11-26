@@ -52,22 +52,11 @@ jobs:
           echo "::set-output name=app_image_tag::$TAG"
           echo "::set-output name=is_semantic_tag::$IS_SEMANTIC_TAG"
       -
-        name: Push Facebook extractor image to ECR
-        uses: keboola/action-push-to-ecr@master
-        with:
-          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
-          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
-          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
-          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
-          tag: ${{ steps.tag.outputs.app_image_tag }}
-          push_latest: ${{ steps.tag.outputs.is_semantic_tag }}
-          source_image: ${{ env.APP_IMAGE}}
-      -
         name: Push Facebook ads extractor image to ECR
         uses: keboola/action-push-to-ecr@master
         with:
           vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
-          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB_ADS }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
           username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
           password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
           tag: ${{ steps.tag.outputs.app_image_tag }}
