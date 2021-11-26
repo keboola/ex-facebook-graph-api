@@ -1,0 +1,148 @@
+name: GitHub Actions
+on: [ push ]
+concurrency: ci-${{ github.ref }} # to avoid tag collisions in the ECR
+env:
+  # Name of the image in the ECR
+  APP_IMAGE: keboola/ex-facebook-graph-api
+
+  # Developer portal login
+  KBC_DEVELOPERPORTAL_VENDOR: "keboola"
+  KBC_DEVELOPERPORTAL_APP_FB: "keboola.ex-facebook"
+  KBC_DEVELOPERPORTAL_APP_FB_ADS: "keboola.ex-facebook-ads"
+  KBC_DEVELOPERPORTAL_APP_INSTAGRAM: "keboola.ex-instagram"
+  KBC_DEVELOPERPORTAL_USERNAME: "keboola+facebook_extractor_github_actions"
+  KBC_DEVELOPERPORTAL_PASSWORD: ${{ secrets.KBC_DEVELOPERPORTAL_PASSWORD }}
+
+  # DockerHub login
+  DOCKERHUB_USER: "keboolabot"
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # Test KBC project
+  KBC_STORAGE_TOKEN: ${{ secrets.KBC_STORAGE_TOKEN }}
+  KBC_TEST_PROJECT_URL: "https://connection.keboola.com/admin/projects/395"
+  KBC_TEST_PROJECT_CONFIGS_FB: "" # space separated list
+  KBC_TEST_PROJECT_CONFIGS_FB_ADS: "395964032" # space separated list
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      app_image_tag: ${{ steps.tag.outputs.app_image_tag }}
+      is_semantic_tag: ${{ steps.tag.outputs.is_semantic_tag }}
+    steps:
+      -
+        name: Check out the repo
+        uses: actions/checkout@v2
+      -
+        name: Print Docker version
+        run: docker -v
+      -
+        name: Docker login
+        if: env.DOCKERHUB_TOKEN
+        run: docker login --username "$DOCKERHUB_USER" --password "$DOCKERHUB_TOKEN"
+      -
+        name: Build image
+        run: docker build -t $APP_IMAGE .
+      -
+        name: Set image tag
+        id: tag
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          IS_SEMANTIC_TAG=$(echo "$TAG" | grep -q '^v\?[0-9]\+\.[0-9]\+\.[0-9]\+$' && echo true || echo false)
+          echo "Tag = '$TAG', is semantic tag = '$IS_SEMANTIC_TAG'"
+          echo "::set-output name=app_image_tag::$TAG"
+          echo "::set-output name=is_semantic_tag::$IS_SEMANTIC_TAG"
+      -
+        name: Push image to ECR
+        uses: keboola/action-push-to-ecr@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ steps.tag.outputs.app_image_tag }}
+          push_latest: ${{ steps.tag.outputs.is_semantic_tag }}
+          source_image: ${{ env.APP_IMAGE}}
+
+  tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Check out the repo
+        uses: actions/checkout@v2
+      -
+        name: Pull image from ECR
+        uses: keboola/action-pull-from-ecr@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
+          target_image: ${{ env.APP_IMAGE}}
+          tag_as_latest: true
+      -
+        name: Run tests
+        run: docker run ${{env.APP_IMAGE}} boot test
+
+  tests-in-kbc:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Run KBC test jobs (FB Extractor)
+        if: env.KBC_STORAGE_TOKEN && env.KBC_TEST_PROJECT_CONFIGS_FB
+        uses: keboola/action-run-configs-parallel@master
+        with:
+          token: ${{ env.KBC_STORAGE_TOKEN }}
+          componentId: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
+          configs: ${{ env.KBC_TEST_PROJECT_CONFIGS_FB }}
+
+      -
+        name: Run KBC test jobs (FB Ads Extractor)
+        if: env.KBC_STORAGE_TOKEN && env.KBC_TEST_PROJECT_CONFIGS_FB_ADS
+        uses: keboola/action-run-configs-parallel@master
+        with:
+          token: ${{ env.KBC_STORAGE_TOKEN }}
+          componentId: ${{ env.KBC_DEVELOPERPORTAL_APP_FB_ADS }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
+          configs: ${{ env.KBC_TEST_PROJECT_CONFIGS_FB_ADS }}
+
+  deploy:
+    needs:
+      - build
+      - tests
+      - tests-in-kbc
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && needs.build.outputs.is_semantic_tag == 'true'
+    steps:
+      -
+        name: Set tag in the Deloper Portal (Facebook Extractor)
+        uses: keboola/action-set-tag-developer-portal@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
+
+      -
+        name: Set tag in the Deloper Portal (Facebook Ads Extractor)
+        uses: keboola/action-set-tag-developer-portal@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB_ADS }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
+
+      -
+        name: Set tag in the Deloper Portal (Instagram Extractor)
+        uses: keboola/action-set-tag-developer-portal@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_INSTAGRAM }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ needs.build.outputs.app_image_tag }}
