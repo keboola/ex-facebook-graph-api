@@ -20,7 +20,7 @@ env:
   # Test KBC project
   KBC_STORAGE_TOKEN: ${{ secrets.KBC_STORAGE_TOKEN }}
   KBC_TEST_PROJECT_URL: "https://connection.keboola.com/admin/projects/395"
-  KBC_TEST_PROJECT_CONFIGS_FB: "" # space separated list
+  KBC_TEST_PROJECT_CONFIGS_FB: "348767954" # space separated list
   KBC_TEST_PROJECT_CONFIGS_FB_ADS: "395964032" # space separated list
 jobs:
   build:
@@ -52,11 +52,33 @@ jobs:
           echo "::set-output name=app_image_tag::$TAG"
           echo "::set-output name=is_semantic_tag::$IS_SEMANTIC_TAG"
       -
-        name: Push image to ECR
+        name: Push Facebook ads extractor image to ECR
         uses: keboola/action-push-to-ecr@master
         with:
           vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
           app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ steps.tag.outputs.app_image_tag }}
+          push_latest: ${{ steps.tag.outputs.is_semantic_tag }}
+          source_image: ${{ env.APP_IMAGE}}
+
+      - name: Push Facebook ads extractor image to ECR
+        uses: keboola/action-push-to-ecr@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_FB_ADS }}
+          username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+          password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
+          tag: ${{ steps.tag.outputs.app_image_tag }}
+          push_latest: ${{ steps.tag.outputs.is_semantic_tag }}
+          source_image: ${{ env.APP_IMAGE}}
+
+      - name: Push Instagram extractor image to ECR
+        uses: keboola/action-push-to-ecr@master
+        with:
+          vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+          app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_INSTAGRAM }}
           username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
           password: ${{ env.KBC_DEVELOPERPORTAL_PASSWORD }}
           tag: ${{ steps.tag.outputs.app_image_tag }}
