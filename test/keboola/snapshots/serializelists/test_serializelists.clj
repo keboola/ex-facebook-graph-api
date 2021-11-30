@@ -1,5 +1,5 @@
-(ns keboola.snapshots.serializeobjects.test-serializeobjects
-  (:require [keboola.snapshots.serializeobjects.apicalls :as apicalls]
+(ns keboola.snapshots.serializelists.test-serializelists
+  (:require [keboola.snapshots.serializelists.apicalls :as apicalls]
             [clojure.test :as t :refer :all]
             [keboola.snapshots.outdirs-check :as outdirs-check]
             [keboola.test-utils.core :as test-utils]
@@ -9,15 +9,15 @@
             )
   (:use clj-http.fake))
 
-(deftest serializeobjects-test
-  (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "serializeobjects"))]
+(deftest serializelists-test
+  (let [tmp-dir (.getPath (test-utils/mk-tmp-dir! "serializelists"))]
     (disable-log-token)
     (println "testing dir:" tmp-dir)
-    (println "expected dir:" "test/keboola/snapshots/serializeobjects")
-    (test-utils/copy-config-tmp "test/keboola/snapshots/serializeobjects" tmp-dir)
+    (println "expected dir:" "test/keboola/snapshots/serializelists")
+    (test-utils/copy-config-tmp "test/keboola/snapshots/serializelists" tmp-dir)
     (with-global-fake-routes-in-isolation
       apicalls/recorded
       (reset-columns-map)
       (prepare-and-run tmp-dir)
-      (outdirs-check/is-equal "test/keboola/snapshots/serializeobjects" tmp-dir)
+      (outdirs-check/is-equal "test/keboola/snapshots/serializelists" tmp-dir)
       )))
