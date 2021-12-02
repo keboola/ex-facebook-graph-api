@@ -1,0 +1,39 @@
+(ns keboola.snapshots.serializelists.apicalls)
+(def recorded 
+{
+{:method :get,
+ :address
+ "https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUkpnN2hjN2tvdjhPMGVhYVFzWU83a0c2U0d0bHFiSEFhTERHTnAxWEZA6MzBxbWZASN3JCTnVyVnN5ZAHRJeS00RHVGcnh1a1ZAabGdIeVEya0VwbDhmUGFR",
+ :as :json}
+(fn [req]{:status 200,
+ :body
+ "{\"data\":[{\"id\":\"23844153993410682\"},{\"id\":\"23844148994770682\",\"frequency_control_specs\":[{\"event\":\"IMPRESSIONS\",\"interval_days\":1,\"max_frequency\":6}]},{\"id\":\"23844111320800682\"},{\"id\":\"23844103736930682\"},{\"id\":\"23844103698260682\"},{\"id\":\"23844102808490682\"},{\"id\":\"23844078885000682\"},{\"id\":\"23844028037580682\"},{\"id\":\"23844027913490682\"},{\"id\":\"23843980952820682\"},{\"id\":\"23843980782690682\"},{\"id\":\"23843888426700682\"},{\"id\":\"23843885056100682\"},{\"id\":\"23843840706700682\"},{\"id\":\"23843838944520682\"},{\"id\":\"23843663131530682\"},{\"id\":\"23843343442760682\"},{\"id\":\"23843240933280682\"},{\"id\":\"23843234244100682\"},{\"id\":\"23843222973130682\"},{\"id\":\"23843222967730682\"},{\"id\":\"23843159603400682\"},{\"id\":\"23843159283730682\"},{\"id\":\"23843121097860682\"},{\"id\":\"23843105682230682\"}],\"paging\":{\"cursors\":{\"before\":\"QVFIUl9sNGFhWG52Mi1xX1RxeHVjb05qOElfQl9wZA2dsSXNnZAVl6Q2FSeFlMaEFhYlZAJUE53R0lHM1V0M2cyTjFXS0E5Q1pGclBnNkFnOUJuSl9KNkpTYW53\",\"after\":\"QVFIUmt0VUhCTzlNT0N0XzZAzWmRGNTNMc3RlelVzQ2dUTnJlb0lZASmk1LXdWZAHd0QXBGY2V3emdGUkJLZAmpidG5Hbk1aTXJFNW5rWkhuWFVFeVdGSnpsZAXZA3\"},\"previous\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&before=QVFIUl9sNGFhWG52Mi1xX1RxeHVjb05qOElfQl9wZA2dsSXNnZAVl6Q2FSeFlMaEFhYlZAJUE53R0lHM1V0M2cyTjFXS0E5Q1pGclBnNkFnOUJuSl9KNkpTYW53\"}}"}
+){:method :get,
+ :address
+ "https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUlV5cDZAQdE1PaklVb1FqeVMyWGpjSXBWeFNpdEZAhZAlFxLWJpRWo1bmNKODFKX1BZAUk1neVlYNXgtRnRYa016N3NqcE9KczQ1NXBLcFRVeEZA2UTJjcDJB",
+ :as :json}
+(fn [req]{:status 200,
+ :body
+ "{\"data\":[{\"id\":\"23845588576660682\"},{\"id\":\"23845510551760682\"},{\"id\":\"23845497626260682\"},{\"id\":\"23845458881630682\"},{\"id\":\"23845405656220682\"},{\"id\":\"23845271377410682\",\"frequency_control_specs\":[{\"event\":\"IMPRESSIONS\",\"interval_days\":30,\"max_frequency\":6}]},{\"id\":\"23845270930970682\"},{\"id\":\"23845201552990682\"},{\"id\":\"23845136125380682\"},{\"id\":\"23845063067650682\"},{\"id\":\"23845045896650682\"},{\"id\":\"23844890477370682\"},{\"id\":\"23844763735970682\"},{\"id\":\"23844751217210682\"},{\"id\":\"23844613385860682\"},{\"id\":\"23844596483280682\"},{\"id\":\"23844587024020682\"},{\"id\":\"23844582832290682\"},{\"id\":\"23844490747860682\"},{\"id\":\"23844184544430682\"},{\"id\":\"23844180554710682\"},{\"id\":\"23844178585150682\"},{\"id\":\"23844178324920682\"},{\"id\":\"23844167303090682\"},{\"id\":\"23844154012460682\"}],\"paging\":{\"cursors\":{\"before\":\"QVFIUlpHV0xYdzZAkZADYxaTFLSGRiUzN1Y2pyTklwdFo2TW93Ty14YkFtdTFWNGhIWE5WVHNhOE9KeFJQenNLdWh0ZA21yeEk4emxCZAk5CU2U0TjhPMzJHeGZAB\",\"after\":\"QVFIUkpnN2hjN2tvdjhPMGVhYVFzWU83a0c2U0d0bHFiSEFhTERHTnAxWEZA6MzBxbWZASN3JCTnVyVnN5ZAHRJeS00RHVGcnh1a1ZAabGdIeVEya0VwbDhmUGFR\"},\"next\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUkpnN2hjN2tvdjhPMGVhYVFzWU83a0c2U0d0bHFiSEFhTERHTnAxWEZA6MzBxbWZASN3JCTnVyVnN5ZAHRJeS00RHVGcnh1a1ZAabGdIeVEya0VwbDhmUGFR\",\"previous\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&before=QVFIUlpHV0xYdzZAkZADYxaTFLSGRiUzN1Y2pyTklwdFo2TW93Ty14YkFtdTFWNGhIWE5WVHNhOE9KeFJQenNLdWh0ZA21yeEk4emxCZAk5CU2U0TjhPMzJHeGZAB\"}}"}
+){:method :get,
+ :address
+ "https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUlZApWmp5OTlIamFiUld2UWx5X2dQYmNVQ1pWNUlmbEJjVEp3c0Vqel9saTg5SHF6a09UUU1yTlBDZAUo5b0ZADek12V2RvTHZAMS0VBQ3hUY29YTkVaeXN3",
+ :as :json}
+(fn [req]{:status 200,
+ :body
+ "{\"data\":[{\"id\":\"23847204132950682\"},{\"id\":\"23847148043930682\"},{\"id\":\"23847003783650682\"},{\"id\":\"23846895937800682\"},{\"id\":\"23846429372250682\"},{\"id\":\"23846373085740682\"},{\"id\":\"23846365734200682\"},{\"id\":\"23846337921540682\"},{\"id\":\"23846337921510682\"},{\"id\":\"23846337915070682\"},{\"id\":\"23846337857450682\"},{\"id\":\"23846329888800682\"},{\"id\":\"23846329827020682\"},{\"id\":\"23846328800180682\"},{\"id\":\"23846321778770682\"},{\"id\":\"23846296646780682\"},{\"id\":\"23846234243070682\"},{\"id\":\"23846155939880682\"},{\"id\":\"23846098443230682\"},{\"id\":\"23846052816590682\"},{\"id\":\"23846033839020682\"},{\"id\":\"23845984814360682\"},{\"id\":\"23845724849860682\"},{\"id\":\"23845593460530682\"},{\"id\":\"23845588673010682\"}],\"paging\":{\"cursors\":{\"before\":\"QVFIUmV0N3ltYlYtX3lpQnJNT1oxUGsxTmU5NG5VbjVaQmJzclJXWVRxX2lPdS1DZAzJjaExkemQwSWVzanZAjaVc2R2RWb1M4VFo4NTFEeE9tTG5oQVlLWXZAR\",\"after\":\"QVFIUlV5cDZAQdE1PaklVb1FqeVMyWGpjSXBWeFNpdEZAhZAlFxLWJpRWo1bmNKODFKX1BZAUk1neVlYNXgtRnRYa016N3NqcE9KczQ1NXBLcFRVeEZA2UTJjcDJB\"},\"next\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUlV5cDZAQdE1PaklVb1FqeVMyWGpjSXBWeFNpdEZAhZAlFxLWJpRWo1bmNKODFKX1BZAUk1neVlYNXgtRnRYa016N3NqcE9KczQ1NXBLcFRVeEZA2UTJjcDJB\",\"previous\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&before=QVFIUmV0N3ltYlYtX3lpQnJNT1oxUGsxTmU5NG5VbjVaQmJzclJXWVRxX2lPdS1DZAzJjaExkemQwSWVzanZAjaVc2R2RWb1M4VFo4NTFEeE9tTG5oQVlLWXZAR\"}}"}
+){:method :get,
+ :address "https://graph.facebook.com/v11.0/adsets",
+ :as :json,
+ :query-params
+ {:path "adsets",
+  :fields "id,frequency_control_specs",
+  :ids "act_522606278080331",
+  :access_token "XXTOKENXX",
+  :since "",
+  :until ""}}
+(fn [req]{:status 200,
+ :body
+ "{\"act_522606278080331\":{\"data\":[{\"id\":\"23849106408410682\"},{\"id\":\"23849103477910682\",\"frequency_control_specs\":[{\"event\":\"IMPRESSIONS\",\"interval_days\":7,\"max_frequency\":1}]},{\"id\":\"23849067903270682\"},{\"id\":\"23849060995620682\"},{\"id\":\"23848962452680682\"},{\"id\":\"23848953603860682\"},{\"id\":\"23848953041860682\"},{\"id\":\"23848952915280682\"},{\"id\":\"23848927728330682\"},{\"id\":\"23848794070540682\"},{\"id\":\"23848686761460682\"},{\"id\":\"23848685259860682\"},{\"id\":\"23848685195570682\"},{\"id\":\"23848141469160682\"},{\"id\":\"23848105082980682\"},{\"id\":\"23848081830050682\"},{\"id\":\"23848056918680682\"},{\"id\":\"23847987759170682\"},{\"id\":\"23847936601890682\"},{\"id\":\"23847873997490682\"},{\"id\":\"23847669609830682\"},{\"id\":\"23847650185210682\"},{\"id\":\"23847602203250682\"},{\"id\":\"23847209514990682\"},{\"id\":\"23847209454990682\"}],\"paging\":{\"cursors\":{\"before\":\"QVFIUmNySG1OQkR0RUFhaWNoX1VIMlVxaVZAQRzNwNXRGaExSOVk0ajJQbXRVWkZA6U3ZAYVmFhRW9IR2MyUHI1eFhUZAGN1N1gwdWd3VFY2VHhKbVVlaTVOSTNR\",\"after\":\"QVFIUlZApWmp5OTlIamFiUld2UWx5X2dQYmNVQ1pWNUlmbEJjVEp3c0Vqel9saTg5SHF6a09UUU1yTlBDZAUo5b0ZADek12V2RvTHZAMS0VBQ3hUY29YTkVaeXN3\"},\"next\":\"https://graph.facebook.com/v11.0/act_522606278080331/adsets?access_token=XXTOKENXX&fields=id%2Cfrequency_control_specs&since&until&limit=25&after=QVFIUlZApWmp5OTlIamFiUld2UWx5X2dQYmNVQ1pWNUlmbEJjVEp3c0Vqel9saTg5SHF6a09UUU1yTlBDZAUo5b0ZADek12V2RvTHZAMS0VBQ3hUY29YTkVaeXN3\"}}}"}
+)
+})

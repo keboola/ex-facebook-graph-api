@@ -9,8 +9,8 @@
             [clojure.core.async :as async :refer [onto-chan >! <! >!! <!! go chan buffer close! thread alts! alt!! alts!! timeout]]
             [clojure.java.io :as io]))
 
-(def chan-buffer-size 300)
-(def sample-rows-count 12000)
+(def chan-buffer-size 3000)
+(def sample-rows-count 20000)
 
 (defn delete-file-if-empty [file-path]
   (if (= 0 (.length (io/file file-path)))
@@ -105,7 +105,7 @@
       (do
         (write-manifest manifest-path header first-write? table-name context async-insights?)
         (csv/write-to-file csv-file header (:buffer memo) false)
-        (if (= (mod (:cnt memo) (* chan-buffer-size 20)) 0)
+        (if (= (mod (:cnt memo) chan-buffer-size) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
         ;return header
         header)

@@ -94,7 +94,7 @@
                               :video_p50_watched_actions :video_p75_watched_actions :cost_per_conversion :cost_per_outbound_click
                               :video_p95_watched_actions :website_ctr :website_purchase_roas :outbound_clicks :conversions :video_play_actions :video_thruplay_watched_actions})
 
-(def serialized-objects-types #{:issues_info :frequency_control_specs})
+(def serialized-lists-types #{:issues_info :frequency_control_specs})
 
 (defn flatten-array
   "flattens array of object with same structure prefixing its keys with array-name
@@ -104,8 +104,8 @@
         (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
         (some? (ads-action-stats-types array-name))
         (map #(assoc % :ads_action_name (name array-name)) array)
-        (some? (serialized-objects-types array-name))
-        (map #(assoc {} array-name (json/write-str %)) array)
+        (some? (serialized-lists-types array-name))
+        (list (assoc {} array-name (json/write-str array)))
         (and (= array-name :media) (empty? array)) '()
         :else (app-error (str "unsuported array:" array-name array))))
 
