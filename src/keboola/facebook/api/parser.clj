@@ -83,7 +83,7 @@
      (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
      :else (list {:key1 "" :key2 "" :value item}))))
 
-(def ads-action-stats-types #{:actions :properties
+(def ads-action-stats-types #{:actions :properties :conversion_values
                               :action_values :canvas_component_avg_pct_view
                               :cost_per_10_sec_video_view :cost_per_action_type :cost_per_unique_action_type
                               :unique_actions :video_10_sec_watched_actions :video_15_sec_watched_actions
