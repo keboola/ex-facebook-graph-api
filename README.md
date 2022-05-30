@@ -188,3 +188,7 @@ To try the app locally check target commands in the [Makefile](Makefile)
 For example to build and run the app locally type from the repo root:
 
 `make build-jar run-jar`
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
