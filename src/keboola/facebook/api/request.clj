@@ -9,7 +9,7 @@
               [keboola.docker.runtime :as runtime]))
 
 (def graph-api-url "https://graph.facebook.com/")
-(def default-version "v5.0")
+(def default-version "v14.0")
 
 (s/fdef make-url
   :args (s/or :path-only (s/cat :path string?)
