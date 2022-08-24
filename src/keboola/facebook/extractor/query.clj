@@ -84,6 +84,7 @@
        (or (query-contains-insights? query)
            (query-path-ratings? query)
            (query-path-feed? query)
+           (query-path-posts? query)
            (query-need-userinfo? query))))
 
 (defn run-async-insights-query [token out-dir name query version]
