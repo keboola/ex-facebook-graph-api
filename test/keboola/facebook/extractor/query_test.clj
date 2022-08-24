@@ -13,7 +13,6 @@
     (f)
     (test-utils/recursive-delete *tmpdir*)))
 
-
 (deftest test-query-contains-insights?
   (is (not (sut/query-contains-insights? {})))
   (is (not (sut/query-contains-insights? {:fields "asasd"})))
@@ -33,13 +32,21 @@
   (is (sut/query-path-feed? {:path "feed" :fields "insights"}))
   (is (sut/query-path-feed? {:path "me/feed" :fields "insights"})))
 
+(deftest test-query-path-posts?
+  (is (not (sut/query-path-posts? {})))
+  (is (not (sut/query-path-posts? {:path "ratings" :fields "feed"})))
+  (is (not (sut/query-path-posts? {:path "feed" :fields "insights"})))
+  (is (sut/query-path-posts? {:path "posts" :fields "insights"}))
+  (is (sut/query-path-posts? {:path "me/posts" :fields "insights"}))
+  (is (sut/query-path-posts? {:path "me/published_posts" :fields "insights"}))
+  (is (sut/query-path-posts? {:path "published_posts" :fields "insights"})))
+
 (deftest test-query-need-userinfo?
   (is (not (sut/query-need-userinfo? {})))
   (is (not (sut/query-need-userinfo? {:path "ratings" :fields "feed"})))
   (is (sut/query-need-userinfo? {:path "likes" :fields "insights"}))
   (is (sut/query-need-userinfo? {:path "" :fields "likes"}))
   (is (sut/query-need-userinfo? {:path "me/feed" :fields "from"})))
-
 
 (defn empty-dir? [path]
   (let [file (io/file path)]
@@ -53,8 +60,7 @@
         out-dir *tmpdir*]
     (println *tmpdir*)
     (with-global-fake-routes-in-isolation
-      {
-       "https://graph.facebook.com/v2.11/media?path=media&ids=123&fields=fields&since=now&until=now&access_token=token"
+      {"https://graph.facebook.com/v2.11/media?path=media&ids=123&fields=fields&since=now&until=now&access_token=token"
        (fn [req]
          media-posted-before-error-response)}
       (sut/run-nested-query token out-dir query)

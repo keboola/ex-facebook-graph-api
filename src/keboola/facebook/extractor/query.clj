@@ -69,9 +69,11 @@
 (defn query-path-feed? [{:keys [path] :or {path ""}}]
   (string/includes? (or path "") "feed"))
 
+(defn query-path-posts? [{:keys [path] :or {path ""}}]
+  (string/includes? (or path "") "posts"))
+
 (defn query-path-ratings? [{:keys [path] :or {path ""}}]
   (string/includes? (or path "") "ratings"))
-
 
 (defn query-need-userinfo? [{:keys [fields path] :or {fields "" path ""}}]
   (or (some #(string/includes? (or fields "") %) ["likes" "from" "username"])
