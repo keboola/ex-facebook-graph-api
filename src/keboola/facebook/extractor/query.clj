@@ -69,9 +69,11 @@
 (defn query-path-feed? [{:keys [path] :or {path ""}}]
   (string/includes? (or path "") "feed"))
 
+(defn query-path-posts? [{:keys [path] :or {path ""}}]
+  (string/includes? (or path "") "posts"))
+
 (defn query-path-ratings? [{:keys [path] :or {path ""}}]
   (string/includes? (or path "") "ratings"))
-
 
 (defn query-need-userinfo? [{:keys [fields path] :or {fields "" path ""}}]
   (or (some #(string/includes? (or fields "") %) ["likes" "from" "username"])
@@ -82,6 +84,7 @@
        (or (query-contains-insights? query)
            (query-path-ratings? query)
            (query-path-feed? query)
+           (query-path-posts? query)
            (query-need-userinfo? query))))
 
 (defn run-async-insights-query [token out-dir name query version]
