@@ -2,8 +2,8 @@
 (set-env!
  :source-paths #{"src" "test"}
  :dependencies '[
-                 [org.clojure/clojure "1.10.1"]
-                 [cheshire "5.10.0"]
+                 [org.clojure/clojure "1.11.1"]
+                 [cheshire "5.11.0"]
                  [clj-http "3.12.3"]
                  [de.ubercode.clostache/clostache "1.4.0"]
                  [org.clojure/tools.cli "0.4.1"]
@@ -11,11 +11,11 @@
                  [org.clojure/data.csv "1.0.0"]
                  [org.clojure/data.json "2.4.0"]
                  [org.clojure/test.check "0.9.0"]
-                 [org.clojure/core.async "1.3.618"]
+                 [org.clojure/core.async "1.5.648"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
                  [clj-http-fake "1.0.3"]
                  [slingshot "0.12.2"]
-                 [clj-time "0.15.1"]
+                 [clj-time "0.15.2"]
                  ])
 
 
