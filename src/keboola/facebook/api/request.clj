@@ -119,7 +119,7 @@
 (defn get-next-page-url
   "return url to the next page from @response param"
   [response]
-  (get-in response [:paging :next]))
+  (get-in response [:next]))
 
 (defn get-next-page-data
   "if response contains next page url then call it and wait for new repsonse
