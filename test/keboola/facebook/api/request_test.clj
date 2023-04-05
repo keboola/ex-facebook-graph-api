@@ -111,3 +111,19 @@
        (is (contains? response :status))
        (is (= 200 (:status response)))
        (is (empty? (-> response :body :data)))))))
+
+(deftest test-get-next-page-url
+  (let [response {:paging {:previous "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&since=1672915646&until=1675248446&metric=total_interactions&metric_type=total_value&period=day"
+                           :next "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&since=1677581248&until=1679914048&metric=total_interactions&metric_type=total_value&period=day"}}]
+    (is (nil? (sut/get-next-page-url response))))
+
+  (let [response {:paging {:previous "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&since=1672915646&until=1675248446&metric=total_interactions&metric_type=total_value&period=day"}}]
+    (is (nil? (sut/get-next-page-url response))))
+
+  (let [response {:paging {:previous "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=total_interactions&metric_type=total_value&period=day"
+                           :next "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=total_interactions&metric_type=total_value&period=day"}}]
+    (is (= (sut/get-next-page-url response) "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=total_interactions&metric_type=total_value&period=day")))
+
+  (let [response {:paging {:previous "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=total_interactions&metric_type=total_value&period=day"
+                           :next "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=reach&metric_type=total_value&period=day"}}]
+    (is (= (sut/get-next-page-url response) "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=reach&metric_type=total_value&period=day"))))
