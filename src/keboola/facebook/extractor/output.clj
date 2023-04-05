@@ -69,9 +69,11 @@
 (def columns-map (atom {}))
 (defn reset-columns-map [] (reset! columns-map {}))
 
-(defn write-manifest [manifest-path columns is-write? table-name context async-insights?]
+(defn write-manifest [manifest-path columns is-write? table-name context async-insights? incremental?]
   (if is-write?
-    (let [manifest {:incremental true :primary_key (get-primary-key columns table-name context async-insights?) :columns columns}]
+    (let [manifest (if incremental?
+                     {:incremental true :primary_key (get-primary-key columns table-name context async-insights?) :columns columns}
+                     {:incremental false :columns columns})]
       (if (not (contains? @columns-map manifest-path))
         (do
           (runtime/save-manifest manifest-path manifest)
@@ -95,7 +97,7 @@
     ; by default return nil saying we have no data to save
 
 
-(defn flush-buffer [csv-file manifest-path table-name memo async-insights?]
+(defn flush-buffer [csv-file manifest-path table-name memo async-insights? incremental?]
   (let [first-write? (:first-write? memo)
         header (if first-write?
                  (prepare-header (:buffer memo) manifest-path)
@@ -103,7 +105,7 @@
         context (-> memo :buffer first :keboola)]
     (if header
       (do
-        (write-manifest manifest-path header first-write? table-name context async-insights?)
+        (write-manifest manifest-path header first-write? table-name context async-insights? incremental?)
         (csv/write-to-file csv-file header (:buffer memo) false)
         (if (= (mod (:cnt memo) chan-buffer-size) 0)
           (runtime/log-strings "Written" (:cnt memo) "rows to" table-name))
@@ -114,9 +116,9 @@
         (if first-write? (runtime/log-strings "Skipping table" table-name "containing only id and parent-id columns"))
         nil))))
 
-(defn process-row [row csv-file manifest-path table-name memo async-insights?]
+(defn process-row [row csv-file manifest-path table-name memo async-insights? incremental?]
   (if (= (count (:buffer memo)) chan-buffer-size)
-    (let [header (flush-buffer csv-file manifest-path table-name memo async-insights?)]
+    (let [header (flush-buffer csv-file manifest-path table-name memo async-insights? incremental?)]
       {:cnt (inc (:cnt memo)) :header header :buffer (list row) :first-write? false})
     ;else part
     {:cnt (inc (:cnt memo))
@@ -124,7 +126,7 @@
      :buffer (conj (:buffer memo) row)
      :first-write? (:first-write? memo)}))
 
-(defn create-write-thread [table-name input-ch out-dir qname-prefix async-insights?]
+(defn create-write-thread [table-name input-ch out-dir qname-prefix async-insights? incremental?]
   (async/thread
     (try+
      (let [kbc-table-name (if (= (last (split qname-prefix #"_")) table-name)
@@ -138,9 +140,9 @@
          (loop [memo {:cnt 0 :buffer '() :header {} :first-write? true}]
            (let [row (<!! input-ch)]
              (if (some? row)
-               (recur (process-row row out-file sliced-dir-path table-name memo async-insights?))
+               (recur (process-row row out-file sliced-dir-path table-name memo async-insights? incremental?))
                ;; else input-ch has closed -> don't call recur,
-               (if (some? (flush-buffer out-file sliced-dir-path table-name memo async-insights?))
+               (if (some? (flush-buffer out-file sliced-dir-path table-name memo async-insights? incremental?))
                  (runtime/log-strings "Total written" (:cnt memo) "rows to table" table-name))))))
                ;; thread terminates
 
@@ -164,11 +166,11 @@
                (= error-strategy :log-on-false-return) (runtime/log-error (:error return-value))))
            return-value)))
 
-(defn write-rows [rows out-dir qname-prefix async-insights?]
+(defn write-rows [rows out-dir qname-prefix async-insights? incremental?]
   (let [sample (take sample-rows-count rows)
         tables-names (set (map #(get-table-name %) sample))
         tables-chans (create-tables-map tables-names (fn [_] (chan)))
-        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix async-insights?))
+        threads-chans (create-tables-map tables-names #(create-write-thread % (tables-chans %) out-dir qname-prefix async-insights? incremental?))
         thread-chans-vec (mapv #(second %) threads-chans)]
     (runtime/log-strings "found tables" tables-names)
     (try+
