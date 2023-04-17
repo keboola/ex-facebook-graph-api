@@ -118,16 +118,20 @@
 
 (defn get-next-page-url
   "return url to the next page from @response param"
-  [response]
-  (get-in response [:paging :next]))
+  [response time-base-pagination?]
+  (let [next-url (get-in response [:paging :next])]
+    (if (or (not time-base-pagination?) (and next-url
+                                             (not (clojure.string/includes? next-url "since="))
+                                             (not (clojure.string/includes? next-url "until="))))
+      next-url)))
 
 (defn get-next-page-data
   "if response contains next page url then call it and wait for new repsonse
   result: vector with new nested-object like structure
   "
-  [response params ex-account-id top-node]
+  [response params ex-account-id top-node time-base-pagination?]
   ;(println "next url" (get-next-page-url response) (:paging response))
-  (if-let [next-page-url (get-next-page-url response)] ; process next api page if exists
+  (if-let [next-page-url (get-next-page-url response time-base-pagination?)] ; process next api page if exists
     (let [new-response (:body (make-get-request next-page-url))]
       (cond (contains? new-response :data)
             [{:parent-id (:parent-id params)
@@ -147,13 +151,13 @@
 (defn page-and-collect
   "collect data from response and make another paging requests if needed.
   Returns lazy sequence of flattened data resulting from processing the whole query"
-  [{:keys [ex-account-id parent-id fb-graph-node table-name path body-data response] :as init-params}]
+  [{:keys [ex-account-id parent-id fb-graph-node table-name path body-data response] :as init-params} time-base-pagination?]
   ((fn step [params this-object-data rest-objects top-node]
      (if (and (empty? rest-objects) (empty? this-object-data))
        nil
        (let [new-rows (mapcat #(extract-values % (dissoc params :body-data :response) ex-account-id) this-object-data)
 
-             next-page-data (get-next-page-data (:response params) params ex-account-id top-node)
+             next-page-data (get-next-page-data (:response params) params ex-account-id top-node time-base-pagination?)
              nested-objects (concat (parser/get-nested-objects this-object-data params) next-page-data)
              all-objects (concat nested-objects rest-objects)
              next-object (first all-objects)
@@ -175,6 +179,7 @@
         preparsed-until (parser/preparse-fields (or until ""))
         query-params (assoc whole-query :access_token access-token :fields preparsed-fields :since preparsed-since :until preparsed-until)
         full-url (make-url path version)
+        time-base-pagination? (:time-based-pagination whole-query)
         response (make-get-request full-url query-params)
         response-body (:body response)
         sanitized-path (keyword (string/replace path #"/" "_"))]
@@ -189,7 +194,7 @@
           :table-name "page"
           :path path
           :body-data [(if (not-empty path) {sanitized-path (second %)} (second %))]
-          :response response-body})
+          :response response-body} time-base-pagination?)
        response-body)
        ;else - no ids response
       (page-and-collect
@@ -199,7 +204,7 @@
         :table-name "page"
         :path path
         :body-data [(if (not-empty path) {sanitized-path response-body} response-body)]
-        :response (if (not-empty path) {sanitized-path response-body} response-body)}))))
+        :response (if (not-empty path) {sanitized-path response-body} response-body)} time-base-pagination?))))
 
 (defn- job-finished? [poll-response]
   (let [status (-> poll-response :body :async_status)
@@ -231,7 +236,7 @@
       :table-name "page"
       :path "insights"
       :body-data [{"insights" response-body}]
-      :response nil})))
+      :response nil} false)))
 
 (defn async-insights-request [access-token ad-account-id parameters version]
   (let [url (make-url (str ad-account-id "/insights") version)
