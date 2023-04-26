@@ -10,7 +10,7 @@
                  [semantic-csv "0.2.0"]
                  [org.clojure/data.csv "1.0.0"]
                  [org.clojure/data.json "2.4.0"]
-                 [org.clojure/test.check "0.9.0"]
+                 [org.clojure/test.check "0.9.0" :scope "test"]
                  [org.clojure/core.async "1.5.648"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
                  [clj-http-fake "1.0.3"]
