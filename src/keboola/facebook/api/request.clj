@@ -279,3 +279,12 @@
   (let [query {:access_token app-token :input_token input-token}
         url (make-url "debug_token" version)]
     (:body (client/GET url :query-params query :as :json))))
+
+; https://developers.facebook.com/docs/pages/access-tokens
+; https://graph.facebook.com/PAGE-ID?fields=access_token&access_token=USER-ACCESS-TOKEN
+(defn get-page-token-via-page-details [access-token page-id]
+  (let [query-params {:fields "access_token" :access_token access-token}
+        url (str graph-api-url page-id)
+        response (client/GET url :query-params query-params :as :json)
+        body (:body response)]
+    (:access_token body)))
