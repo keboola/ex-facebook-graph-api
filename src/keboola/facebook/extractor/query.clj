@@ -26,7 +26,7 @@
 (defn retrieve-page-access-token [id token version]
   (let [accounts (swallow-exceptions (request/get-accounts token :version version))
         page-token-from-accounts-list (if (some? accounts) (:access_token (first (filter #(= id (:id %)) accounts))))
-        page-token-from-page-details (swallow-exceptions (request/get-page-token-via-page-details token id :version version))
+        page-token-from-page-details (swallow-exceptions (request/get-page-token-via-page-details token id))
         page-token (or page-token-from-accounts-list page-token-from-page-details)]
     (if (nil? page-token)
       (runtime/log-strings "Could not find page access token for" id ". Token from the configuration will be used instead.")

@@ -282,7 +282,9 @@
 
 ; https://developers.facebook.com/docs/pages/access-tokens
 ; https://graph.facebook.com/PAGE-ID?fields=access_token&access_token=USER-ACCESS-TOKEN
-(defn get-page-token-via-page-details [access-token page-id & {:keys [version]}]
-  (:access_token (apply concat (get-request access-token page-id
-                                            :query {:fields "access_token"}
-                                            :version version))))
+(defn get-page-token-via-page-details [access-token page-id]
+  (let [query-params {:fields "access_token" :access_token access-token}
+        url (str graph-api-url page-id)
+        response (client/GET url :query-params query-params :as :json)
+        body (:body response)]
+    (:access_token body)))
