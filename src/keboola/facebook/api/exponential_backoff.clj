@@ -14,3 +14,15 @@
       (Thread/sleep slot)
       (when (not (action!))
         (recur (if (>= c truncate) c (inc c)) (+ waited slot))))))
+
+(defn- try-n-times [f n]
+  (if (zero? n)
+    (f)
+    (try
+      (f)
+      (catch Throwable _
+        (Thread/sleep (* 1000 10))
+        (try-n-times f (dec n))))))
+
+(defn try-3-times [f]
+  (try-n-times f 3))

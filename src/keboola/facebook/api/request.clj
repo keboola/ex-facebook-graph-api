@@ -1,6 +1,6 @@
 (ns keboola.facebook.api.request
   (:require   [clojure.spec.alpha :as s]
-              [keboola.facebook.api.exponential-backoff :refer [with-exp-backoff]]
+              [keboola.facebook.api.exponential-backoff :refer [with-exp-backoff try-3-times]]
               [keboola.facebook.api.parser :as parser]
               [keboola.docker.runtime :refer [log-strings app-error log-error]]
               [slingshot.slingshot :refer [try+ throw+]]
@@ -220,7 +220,7 @@
 (defn- poll-async-request [report_run_id access-token version]
   (let [url (str (make-url report_run_id version) "?access_token=" access-token)
         request-fn #(client/GET url :as :json)
-        finished?-fn #(job-finished? (request-fn))]
+        finished?-fn #(job-finished? (try-3-times request-fn))]
     (log-strings "Started polling for insights job report:" report_run_id)
     (with-exp-backoff finished?-fn)))
 
