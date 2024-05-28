@@ -27,6 +27,10 @@
 (def error-400-response
   {:request-time 21463, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 400, :length 108, :body "{\"error\":{\"code\":1,\"message\":\"There cannot be more than 93 days (8035200 s) between since and until\"}}"})
 
+(def cannot-include-error
+  {:request-time 21463, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 400, :length 108, :body "{\"error\":{\"code\":1,\"message\":\"(#100) Cannot include account_id, account_name, ad_id, ad_name, adset_id, adset_name, campaign_id, campaign_name, impressions, clicks, spend, reach in summary param because they weren't there while creating the report run. All available values are:\"}}"})
+
+
 (def unknown-error-response
   {:request-time 30136, :repeatable? false, :protocol-version {:name "HTTP", :major 1, :minor 1}, :streaming? true, :chunked? false, :reason-phrase "Internal Server Error", :headers {}, :orig-content-encoding nil, :status 500, :length 77, :body "{\"error\":{\"code\":1,\"message\":\"An unknown error occurred\",\"error_subcode\":99}}", :trace-redirects ["https://graph.facebook.com/v2.8/adsblablabla"]})
 
@@ -65,7 +69,7 @@
        success-response
        (do
          (dec-error-count)
-         (rand-nth [unexpected-error-response unknown-error-response reduce-data-response something-went-wrong-error-response]))))})
+         (rand-nth [unexpected-error-response unknown-error-response reduce-data-response something-went-wrong-error-response cannot-include-error]))))})
 
 (deftest test-retry-on-html-error
   (is  (sut/retry-exception? something-went-wrong-error-response)))

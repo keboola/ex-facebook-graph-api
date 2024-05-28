@@ -64,7 +64,8 @@
           (re-find #"Please reduce the amount of data" (:body e))))
         (and (<= 400 status 600)
              (re-find #"since param is not valid. Metrics data is available for the last 2 years" (:body e)))
-        (re-find #"This method must be called with a Page Access Token" (:body e)))))
+        (re-find #"This method must be called with a Page Access Token" (:body e))
+        (re-find #"\(#100\) Cannot include" (:body e)))))
 
 (def MIN_TRY_LIMIT_COUNT 3)
 (def MIN_TRY_LIMIT 1)
@@ -77,7 +78,7 @@
      (log-error "Recoverable error encountered: Media Posted Before Business Account Conversion Error" (:body e))
      empty-response)
    (catch retry-exception? e
-     (Thread/sleep 1000)
+     (Thread/sleep 60000)
      (if (zero? min-limit-count)
        (throw+ e)
        (let [current-limit (or (parse-limit-from-url url) DEFAULT_LIMIT)
