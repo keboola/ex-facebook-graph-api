@@ -103,7 +103,7 @@
 (defn run-async-insights-query [token out-dir name query version]
   (let [ids-str (:ids query)
         parameters (:parameters query)
-        run-query (fn [id] (request/async-insights-request token id parameters version))
+        run-query (fn [id] (request/async-insights-request token id parameters version query))
         ids-seq (s/split ids-str #",")
         all-merged-queries-rows (mapcat #(run-query %) ids-seq)
         all-rows (apply concat all-merged-queries-rows)]
