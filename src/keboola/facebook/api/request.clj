@@ -127,6 +127,7 @@
                                             (not (clojure.string/includes? next-url "until="))))
         stop-on-empty-response-valid (or (not stop-on-empty-response?)
                                          (not (-> response :data empty?)))]
+    (if (not stop-on-empty-response-valid) (log-strings "Found empty data response, stopping pagintaion."))
     (if (and time-base-pagination-valid stop-on-empty-response-valid)
       next-url)))
 
@@ -191,6 +192,7 @@
         sanitized-path (keyword (string/replace path #"/" "_"))]
 
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)
+    (if stop-on-empty-response? (log-strings "Stop on empty response is enabled."))
     (if (some? ids)
       (mapcat
        #(page-and-collect
@@ -235,6 +237,7 @@
         response (make-get-request url)
         response-body (:body response)]
     ;(println "response-body" response-body)
+    (if stop-on-empty-response? (log-strings "Stop on empty response is enabled."))
     (page-and-collect
      {:ex-account-id ad-account-id
       :parent-id ad-account-id
