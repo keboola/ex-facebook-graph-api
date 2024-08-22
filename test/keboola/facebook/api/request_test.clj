@@ -120,10 +120,10 @@
     (is (nil? (sut/get-next-page-url response true false)))
     (is (nil? (sut/get-next-page-url response false false))))
 
-  (let [response {:paging {:next "someurl"}} :data []]
+  (let [response {:paging {:next "someurl"} :data []}]
     (is (nil? (sut/get-next-page-url response false true))))
 
-  (let [response {:paging {:next "someurl"}} :data [{:some "data"}]]
+  (let [response {:paging {:next "someurl"} :data [{:some "data"}]}]
     (is (= "someurl" (sut/get-next-page-url response false true))))
 
   (let [response {:paging {:previous "https://graph.facebook.com/v16.0/17841401480255572/insights?access_token=XXX&pretty=0&metric=total_interactions&metric_type=total_value&period=day"
