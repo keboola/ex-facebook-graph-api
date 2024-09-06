@@ -11,6 +11,7 @@
             [keboola.facebook.extractor.query :as query]
             [keboola.facebook.extractor.sync-actions :as sync-actions]
             [keboola.http.client :refer [fb-requests-count]]
+            [keboola.http.recording :refer [turn-log-responses-on]]
             [keboola.utils.json-to-csv :as csv]
             [slingshot.slingshot :refer [throw+ try+]]))
 
@@ -64,6 +65,10 @@
         app-access-token (docker-config/app-access-token datadir)
         out-dir-path (docker-config/out-dir-path datadir)
         credentials (docker-config/user-credentials datadir)]
+    (when (:debug-mode parameters)
+      (log "Running in debug mode")
+      (sync-actions/disable-log-token)
+      (turn-log-responses-on))
     (cond
       (empty? credentials) (docker-runtime/user-error "Missing facebook credentials")
       (empty? (docker-config/get-fb-token credentials)) (docker-runtime/user-error "Missing facebook token"))
