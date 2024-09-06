@@ -42,9 +42,16 @@
 
 
 (defn replace-token-by-regexp [item]
-  (if (string? item)
+  (cond
+    (string? item)
     (clojure.string/replace item #"access_token=[^&]*" "access_token=TOKEN")
-    item))
+
+    (map? item)
+    (if (contains? item :access_token)
+      (assoc item :access_token "TOKEN")
+      item)
+
+    :else item))
 
 (defn record-request [response method url request-rest]
   (when @do-log-responses?
