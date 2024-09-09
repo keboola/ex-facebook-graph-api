@@ -2,7 +2,7 @@
   (:require   [clojure.spec.alpha :as s]
               [keboola.facebook.api.exponential-backoff :refer [with-exp-backoff try-3-times]]
               [keboola.facebook.api.parser :as parser]
-              [keboola.docker.runtime :refer [log-strings app-error log-error]]
+              [keboola.docker.runtime :refer [log-strings app-error log-error log]]
               [slingshot.slingshot :refer [try+ throw+]]
               [keboola.http.client :as client]
               [clojure.string :as string]
@@ -218,6 +218,7 @@
   (let [status (-> poll-response :body :async_status)
         completed? (= status "Job Completed")
         failed? (some (partial = status)  ["Job Failed" "Job Skipped"])]
+    (log (:body poll-response))
     (cond
       (not status) (runtime/app-error (str "Polling failed with unknown status" (:body poll-response)))
       failed?  (runtime/user-error (str "Polling failed with status:" status (:body poll-response)))
