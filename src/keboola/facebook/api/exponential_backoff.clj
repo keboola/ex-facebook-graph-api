@@ -1,9 +1,9 @@
 (ns keboola.facebook.api.exponential-backoff
   (:require [keboola.docker.runtime :as runtime]))
 
-(def time-slot-ms 100)
-(def truncate 5)
-(def MAX_WAIT_TIME (* 1000 60 60 10))
+(def time-slot-ms 1000)
+(def truncate 6) ; sleep for 64 seconds at most (2^6)
+(def MAX_WAIT_TIME (* 1000 60 60 24)) ; poll for 24 hours at most
 
 (defn with-exp-backoff [action!]
   (loop [c 0
