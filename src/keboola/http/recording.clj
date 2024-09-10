@@ -4,11 +4,15 @@
 
 (def recording (atom '()))
 (def do-recording? (atom false))
+(def do-log-responses? (atom false))
+
 
 (defn reset-recording [] (reset! recording '()))
 
 (defn turn-recording-on [] (reset! do-recording? true))
 (defn turn-recording-off [] (reset! do-recording? false))
+
+(defn turn-log-responses-on [] (reset! do-log-responses? true))
 
 (def VALID-CHARS
   (map char (concat (range 48 58) ; 0-9
@@ -36,8 +40,27 @@
 (defn anonymize-map [m]
   (postwalk anonymize-item m))
 
+
+(defn replace-token-by-regexp [item]
+  (cond
+    (string? item)
+    (clojure.string/replace item #"access_token=[^&]*" "access_token=TOKEN")
+
+    (map? item)
+    (if (contains? item :access_token)
+      (assoc item :access_token "TOKEN")
+      item)
+
+    :else item))
+
 (defn record-request [response method url request-rest]
-  #_(println (pr-str request-rest))
+  (when @do-log-responses?
+    (let [result-map  {:method method
+                       :url url
+                       :response {:status (:status response) :body (:body response)}}
+          result (postwalk replace-token-by-regexp result-map)]
+      (println (generate-string result {:pretty true})))
+    (Thread/sleep 350))
   (if @do-recording?
     (let [request-base {:method method :address url}
           request (merge request-base (apply hash-map request-rest))

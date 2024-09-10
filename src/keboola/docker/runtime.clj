@@ -22,7 +22,13 @@
 
 
 (defn log-strings [& strings]
-  (apply println strings))
+  (apply println (map
+                  #(if (map? %)
+                     ; pretty print maps
+                     (generate-string % {:pretty true})
+                     ; else just print
+                     %)
+                  strings)))
 
 (defn log [what]
   (println what))

@@ -218,6 +218,7 @@
   (let [status (-> poll-response :body :async_status)
         completed? (= status "Job Completed")
         failed? (some (partial = status)  ["Job Failed" "Job Skipped"])]
+    (log-strings "Facebook API async insights job state:" (:body poll-response))
     (cond
       (not status) (runtime/app-error (str "Polling failed with unknown status" (:body poll-response)))
       failed?  (runtime/user-error (str "Polling failed with status:" status (:body poll-response)))
