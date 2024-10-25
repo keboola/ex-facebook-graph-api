@@ -5,8 +5,11 @@
             [keboola.docker.config :as docker-config]
             [keboola.docker.runtime :as runtime]
             [keboola.facebook.api.request :as request]
+            [keboola.facebook.extractor.query-parser :refer :all]
             [keboola.facebook.extractor.output :as output]
-            [clojure.string :as string]))
+            [clojure.string :as string])
+  (:import [java.time LocalDate]
+           [java.time.format DateTimeFormatter]))
 (defn incremental?
   "Returns false if the given query is not incremental, true otherwise."
   [query]
@@ -100,14 +103,60 @@
            (query-path-posts? query)
            (query-need-userinfo? query))))
 
-(defn run-async-insights-query [token out-dir name query version]
+(defn make-run-inishgts-query-with-time-range [async-insights-request-fn token id parameters-str version query]
+  (let [parameters-map (parse-parameters parameters-str)
+        time-ranges-str (get parameters-map "time_ranges")
+        date-preset (get parameters-map "date_preset")]
+    (cond
+    ;; If time_ranges is present, split into daily queries
+      time-ranges-str
+      (let [time-ranges (parse-time-ranges time-ranges-str)
+            expanded-time-ranges (expand-time-ranges time-ranges)
+            run-query-for-time-range (fn [time-range]
+                                       (let [new-parameters (generate-parameters-for-dates parameters-map time-range)]
+                                         (async-insights-request-fn token id new-parameters version query)))]
+        (runtime/log-strings "Splitting query by time_ranges: " {:time_ranges expanded-time-ranges})
+        (mapcat run-query-for-time-range expanded-time-ranges))
+    ;; If date_preset is one of last_3d, last_7d, last_30d, split into daily queries
+      (some #{date-preset} ["last_3d" "last_7d" "last_30d"])
+      (let [days (date-preset-to-days date-preset)
+            end-date (.format (LocalDate/now) (DateTimeFormatter/ofPattern "yyyy-MM-dd"))
+            start-date (get-past-date days)
+            expanded-time-ranges (generate-date-ranges start-date end-date)
+            run-query-for-time-range (fn [time-range]
+                                       (let [new-parameters (generate-parameters-for-dates parameters-map time-range)]
+                                         (async-insights-request-fn token id new-parameters version query)))]
+        (runtime/log-strings "Splitting query by date_preset: " date-preset {:time_ranges expanded-time-ranges})
+        (mapcat run-query-for-time-range expanded-time-ranges))
+    ;; Else, use the parameters as is
+      :else
+      (do
+        (runtime/log-strings "Running query with parameters as is even though split-query-time-range-by-day = true")
+        (async-insights-request-fn token id parameters-str version query)))))
+
+;; Runs the async insights query, splitting it into daily queries based on time_ranges or date_preset.
+(defn run-async-insights-query-with-splitting [token out-dir name query version]
   (let [ids-str (:ids query)
         parameters (:parameters query)
-        run-query (fn [id] (request/async-insights-request token id parameters version query))
         ids-seq (s/split ids-str #",")
-        all-merged-queries-rows (mapcat #(run-query %) ids-seq)
+        run-query (fn [id] (make-run-inishgts-query-with-time-range request/async-insights-request token id parameters version query))
+        all-merged-queries-rows (mapcat run-query ids-seq)
         all-rows (apply concat all-merged-queries-rows)]
     (output/write-rows all-rows out-dir name true (incremental? query))))
+
+;; Runs the async insights query, optionally splitting it into daily queries based on the query configuration.
+(defn run-async-insights-query [token out-dir name query version]
+  (let [split-query? (:split-query-time-range-by-day query)]
+    (if split-query?
+      (run-async-insights-query-with-splitting token out-dir name query version)
+      ;; Else, use the parameters as is
+      (let [ids-str (:ids query)
+            parameters (:parameters query)
+            ids-seq (s/split ids-str #",")
+            run-query (fn [id] (request/async-insights-request token id parameters version query))
+            all-merged-queries-rows (mapcat run-query ids-seq)
+            all-rows (apply concat all-merged-queries-rows)]
+        (output/write-rows all-rows out-dir name true (incremental? query))))))
 
 (defn run-query [query all-ids credentials out-dir]
   (runtime/log-strings "Run query:" query)
