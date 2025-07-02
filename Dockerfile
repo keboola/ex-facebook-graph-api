@@ -1,4 +1,4 @@
-FROM clojure:boot-2.8.2-alpine
+FROM clojure:openjdk-15-boot-2.8.3
 MAINTAINER <tomas.kacur@keboola.com>
 
 # ENV BOOT_JVM_OPTIONS=-Xmx256m
