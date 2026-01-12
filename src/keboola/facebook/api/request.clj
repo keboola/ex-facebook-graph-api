@@ -11,6 +11,47 @@
 (def graph-api-url "https://graph.facebook.com/")
 (def default-version "v20.0")
 
+(defn- parse-unix-ts
+  "Parse a 10-digit Unix timestamp from a string, return nil if not valid."
+  [value]
+  (when (and value (string? value) (re-matches #"\d{10}" value))
+    (Long/parseLong value)))
+
+(defn- extract-url-param
+  "Extract a query parameter value from a URL string."
+  [url param-name]
+  (when url
+    (second (re-find (re-pattern (str param-name "=([^&]+)")) url))))
+
+(defn- remove-url-param
+  "Remove a query parameter from a URL string."
+  [url param-name]
+  (when url
+    (-> url
+        (string/replace (re-pattern (str "&" param-name "=[^&]+")) "")
+        (string/replace (re-pattern (str "\\?" param-name "=[^&]+&")) "?")
+        (string/replace (re-pattern (str "\\?" param-name "=[^&]+$")) ""))))
+
+(defn- handle-future-timestamps
+  "Handle Meta bug: pagination URLs sometimes have future timestamps.
+   Returns the URL (possibly modified) or nil if pagination should stop."
+  [url]
+  (when url
+    (let [until-str (extract-url-param url "until")
+          until-ts (parse-unix-ts until-str)
+          now-ts (quot (System/currentTimeMillis) 1000)]
+      (if (and until-ts (> until-ts now-ts))
+        (let [since-str (extract-url-param url "since")
+              since-ts (parse-unix-ts since-str)]
+          (if (and since-ts (> since-ts now-ts))
+            (do
+              (log-strings "Skipping future-only pagination range. URL:" url)
+              nil)
+            (do
+              (log-strings "Removing future 'until'=" until-str ". URL:" url)
+              (remove-url-param url "until"))))
+        url))))
+
 (s/fdef make-url
   :args (s/or :path-only (s/cat :path string?)
               :path-and-version (s/cat :path string? :version string?))
@@ -121,15 +162,16 @@
   "return url to the next page from @response param"
   [response time-base-pagination? stop-on-empty-response?]
   (let [next-url (get-in response [:paging :next])
+        processed-url (handle-future-timestamps next-url)
         time-base-pagination-valid (or (not time-base-pagination?)
-                                       (and next-url
-                                            (not (clojure.string/includes? next-url "since="))
-                                            (not (clojure.string/includes? next-url "until="))))
+                                       (and processed-url
+                                            (not (clojure.string/includes? processed-url "since="))
+                                            (not (clojure.string/includes? processed-url "until="))))
         stop-on-empty-response-valid (or (not stop-on-empty-response?)
                                          (not (-> response :data empty?)))]
     (if (not stop-on-empty-response-valid) (log-strings "Found empty data response, stopping pagintaion."))
     (if (and time-base-pagination-valid stop-on-empty-response-valid)
-      next-url)))
+      processed-url)))
 
 (defn get-next-page-data
   "if response contains next page url then call it and wait for new repsonse
