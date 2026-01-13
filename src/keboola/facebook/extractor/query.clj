@@ -23,17 +23,29 @@
         all-rows (apply concat nested-data)]
     (output/write-rows all-rows out-dir prefix false (incremental? query))))
 
-(defmacro swallow-exceptions [& body]
-  `(try ~@body (catch Exception e#)))
+(defmacro try-with-warning [context & body]
+  `(try ~@body
+        (catch Exception e#
+          (runtime/log-error (str "Warning: " ~context " failed: " (.getMessage e#)))
+          nil)))
 
 (defn retrieve-page-access-token [id token version]
-  (let [accounts (swallow-exceptions (request/get-accounts token :version version))
-        page-token-from-accounts-list (if (some? accounts) (:access_token (first (filter #(= id (:id %)) accounts))))
-        page-token-from-page-details (swallow-exceptions (request/get-page-token-via-page-details token id))
+  (let [accounts (try-with-warning (str "fetching accounts list for page " id)
+                                   (request/get-accounts token :version version))
+        page-token-from-accounts-list (when (some? accounts)
+                                        (:access_token (first (filter #(= id (:id %)) accounts))))
+        page-token-from-page-details (when (nil? page-token-from-accounts-list)
+                                       (try-with-warning (str "fetching page token via page details for " id)
+                                                         (request/get-page-token-via-page-details token id)))
         page-token (or page-token-from-accounts-list page-token-from-page-details)]
-    (if (nil? page-token)
-      (runtime/log-strings "Could not find page access token for" id ". Token from the configuration will be used instead.")
-      (runtime/log-strings "Using page access token to retrieve data for" id))
+    (cond
+      (some? page-token)
+      (runtime/log-strings "Using page access token to retrieve data for" id)
+      (and (nil? accounts) (nil? page-token-from-page-details))
+      (runtime/log-error (str "Page token failed for " id ": both /me/accounts and page details API failed. "
+                              "The user token will be used but may lack permissions for insights queries."))
+      :else
+      (runtime/log-strings "Could not find page access token for" id ". Token from the configuration will be used instead."))
     page-token))
 
 (defn choose-token [id user-token version]
