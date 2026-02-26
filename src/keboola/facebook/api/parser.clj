@@ -53,12 +53,22 @@
                              object-value)
     :else (list {:key1 key1 :key2 "" :value object-value})))
 
-(defn flatten-array-value [item end_time]
-  (map
-   #(assoc % :end_time end_time)
-   (cond
-     (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
-     :else (list {:key1 "" :key2 "" :value item}))))
+(defn flatten-array-value
+  "Flattens a single values array entry into key1/key2/value rows.
+  Supports both old format (value is a map) and new Facebook API breakdown
+  format where breakdown fields are siblings of value and end_time."
+  ([item end_time]
+   (flatten-array-value item end_time {}))
+  ([item end_time breakdown-fields]
+   (map
+    #(merge % {:end_time end_time} breakdown-fields)
+    (cond
+      (map? item) (mapcat (fn [[key1 val]] (flatten-value-object (name key1) val)) item)
+      :else (list {:key1 (or (first (vals breakdown-fields)) "")
+                   :key2 (if (> (count breakdown-fields) 1)
+                           (second (vals breakdown-fields))
+                           "")
+                   :value item})))))
 
 (def ads-action-stats-types #{:actions :properties :conversion_values
                               :action_values :canvas_component_avg_pct_view
@@ -73,12 +83,30 @@
 
 (def serialized-lists-types #{:issues_info :frequency_control_specs})
 
+(defn extract-breakdown-fields
+  "Extracts breakdown fields from a values array entry.
+  Breakdown fields are any fields that are not :value or :end_time.
+  Returns a map of breakdown field names (as strings) to their values."
+  [entry]
+  (let [known-keys #{:value :end_time}]
+    (into {} (keep (fn [[k v]]
+                     (when-not (known-keys k)
+                       [(name k) (str v)]))
+                   entry))))
+
 (defn flatten-array
   "flattens array of object with same structure prefixing its keys with array-name
   returns list of key-value pairs"
   [array array-name]
   (cond (= array-name :values)
-        (mapcat #(flatten-array-value (:value %) (:end_time %)) array)
+        (mapcat #(let [breakdowns (extract-breakdown-fields %)
+                       breakdown-keys (sort (keys breakdowns))
+                       key1 (if (seq breakdown-keys) (get breakdowns (first breakdown-keys)) nil)
+                       key2 (if (> (count breakdown-keys) 1) (get breakdowns (second breakdown-keys)) nil)
+                       breakdown-map (cond-> {}
+                                       key1 (assoc :key1 key1)
+                                       key2 (assoc :key2 key2))]
+                   (flatten-array-value (:value %) (:end_time %) breakdown-map)) array)
         (some? (ads-action-stats-types array-name))
         (map #(assoc % :ads_action_name (name array-name)) array)
         (some? (serialized-lists-types array-name))
