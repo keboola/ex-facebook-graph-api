@@ -9,6 +9,39 @@
 (deftest test-make-url
   (is (test-and-check `sut/make-url 10)))
 
+(defn- record-graph-requests [requests]
+  {#"https://graph\.facebook\.com/.*"
+   (fn [req]
+     (swap! requests conj req)
+     (let [[_ node edge] (re-find #"^/[^/]+/([^/]+)(/.+)?" (:uri req))]
+       {:status 200 :headers {}
+        :body (if edge
+                (str "{\"data\":[{\"id\":\"" node "_1\",\"message\":\"m\"}]}")
+                (str "{\"id\":\"" node "\",\"name\":\"n\"}"))}))})
+
+(deftest test-nested-request-never-sends-ids-param
+  (let [requests (atom [])]
+    (with-global-fake-routes-in-isolation
+      (record-graph-requests requests)
+      (let [rows (apply concat (sut/nested-request "token" {:path "feed" :fields "message" :ids "a, b,,c"} :version "v20.0"))]
+        (is (= ["/v20.0/a/feed" "/v20.0/b/feed" "/v20.0/c/feed"] (map :uri @requests)))
+        (is (not-any? #(re-find #"(^|&)ids=" (or (:query-string %) "")) @requests))
+        (is (= #{"a" "b" "c"} (set (map :ex-account-id rows))))))))
+
+(deftest test-nested-request-ids-without-path-requests-the-node
+  (let [requests (atom [])]
+    (with-global-fake-routes-in-isolation
+      (record-graph-requests requests)
+      (dorun (sut/nested-request "token" {:path "" :fields "insights" :ids "act_1"} :version "v20.0"))
+      (is (= ["/v20.0/act_1"] (map :uri @requests))))))
+
+(deftest test-get-by-each-id-keys-bodies-by-id
+  (let [requests (atom [])]
+    (with-global-fake-routes-in-isolation
+      (record-graph-requests requests)
+      (is (= #{:a :b} (set (keys (sut/get-by-each-id "a,b" "/feed" "v20.0" {:ids "a,b" :fields "message"})))))
+      (is (= ["/v20.0/a/feed" "/v20.0/b/feed"] (map :uri @requests))))))
+
 (deftest test-update-url-with-limit
   (let [testfn sut/update-url-with-limit
         stemurl "https://graphapi.com"

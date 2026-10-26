@@ -46,7 +46,7 @@ Note day we are using `since(now)` specification of insights time to get the mos
 ```
 
 You can try the examples above by calling Facebook Graph api directly in a http client(e.g. Postman) as follows:
-`GET https://graph.facebook.com/<api_version>/<path>?fields=<fields>&ids=<ids>&access_token=<access_token>`
+`GET https://graph.facebook.com/<api_version>/<id>/<path>?fields=<fields>&access_token=<access_token>`
 You can get access token in [Graph Api Explorer](https://developers.facebook.com/tools/explorer).
 # Configuration
 ## Facebook Graph API
@@ -63,7 +63,7 @@ For more info see Making Nested Queries in https://developers.facebook.com/docs/
 In configuration under parameters there is an array of `queries`(see sample configuration). Each query besides obvious properties such as `id`, `name`, `type`(currently only nested-query type), `disabled` also contains object `query` with the following properties:
 - `path` : enpoint url so the absolute url will be like graph.facebook.com/version/path. Typically it is endpoint **feed**. Can be an empty string if we want to start extracting from the "root" node that is the page itself.
 - `fields`: fields parameter of the graph api nested-query
-- `ids`: comma separated list of ids(typically page-ids) that will be prepended with path. It is also a parameter of graph api. If empty string than all ids from `accounts` object will be used. Can also be completely removed from the query.
+- `ids`: comma separated list of ids(typically page-ids) that will be prepended with path. The extractor makes one request per id (`<id>/<path>`), because Graph API removed the `ids` multi-ID parameter on 2026-10-27. If empty string than all ids from `accounts` object will be used. Can also be completely removed from the query.
 - `limit` - size of one page(response). Default is 25, maximum 100. Useful when fb api returns error that the request is "too big" - in such case use smaller limit. This parameter also affects the total number of request made to fb api.
 - `since` - relates to the *created_time* of **path** parameter i.e., if path is "posts" then it takes all posts with *created_time* since the specified date in **since** parameter. If path is empty then it does not have any effect. Can be specified relatively, e.g. 10 days ago.
 - `until` - same as since above but specifies date until data with *created_time* date.

@@ -176,6 +176,20 @@
                                :body-data (:data (:data next-object)))]
          (lazy-seq (cons new-rows (step new-params (:body-data new-params) (rest all-objects) top-node)))))) init-params body-data [] fb-graph-node))
 
+(defn split-ids [ids]
+  (remove empty? (map string/trim (string/split ids #","))))
+
+(defn get-by-each-id
+  "Facebook removes the `ids` multi-ID query parameter on 2026-10-27, for all Graph API versions.
+  Requests every id on its own node and returns the id -> body map the multi-ID call used to return."
+  [ids path version query-params]
+  (let [node-path (string/replace (or path "") #"^/+" "")
+        params (dissoc query-params :ids)]
+    (into {} (map (fn [id]
+                    (let [url (make-url (if (empty? node-path) id (str id "/" node-path)) version)]
+                      [(keyword id) (:body (make-get-request url params))]))
+                  (split-ids ids)))))
+
 (defn nested-request
   "Make a initial request to fb api given query and collect its result data.
   Returns collection of maps of key-value pairs page-id -> result_data "
@@ -187,8 +201,9 @@
         full-url (make-url path version)
         time-base-pagination? (:time-based-pagination whole-query)
         stop-on-empty-response? (:stop-on-empty-response whole-query)
-        response (make-get-request full-url query-params)
-        response-body (:body response)
+        response-body (if (some? ids)
+                        (get-by-each-id ids path version query-params)
+                        (:body (make-get-request full-url query-params)))
         sanitized-path (keyword (string/replace path #"/" "_"))]
 
     (log-strings "calling" full-url "with" preparsed-fields ids preparsed-since preparsed-until)

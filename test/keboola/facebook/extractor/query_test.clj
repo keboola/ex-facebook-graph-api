@@ -63,7 +63,7 @@
         out-dir *tmpdir*]
     (println *tmpdir*)
     (with-global-fake-routes-in-isolation
-      {"https://graph.facebook.com/v2.11/media?path=media&ids=123&fields=fields&since=now&until=now&access_token=token"
+      {"https://graph.facebook.com/v2.11/123/media?path=media&fields=fields&since=now&until=now&access_token=token"
        (fn [req]
          media-posted-before-error-response)}
       (sut/run-nested-query token out-dir query)

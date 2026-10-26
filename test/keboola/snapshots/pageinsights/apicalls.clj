@@ -2,42 +2,18 @@
 (def recorded 
 {
 {:method :get,
- :address "https://graph.facebook.com/v2.8/",
+ :address "https://graph.facebook.com/v2.8/177057932317550",
  :as :json,
  :query-params
  {:path "",
   :fields
   "insights.since(2 days ago).metric(page_views_by_age_gender_logged_in_unique,page_impressions_by_story_type, page_impressions_by_locale_unique, page_views_total, page_fans)",
-  :ids "177057932317550",
   :access_token "XXTOKENXX",
   :since "",
   :until ""}}
-(fn [req]{:request-time 210,
- :repeatable? false,
- :protocol-version {:name "HTTP", :major 1, :minor 1},
- :streaming? true,
- :chunked? false,
- :reason-phrase "OK",
- :headers
- {"Content-Type" "text/javascript; charset=UTF-8",
-  "Access-Control-Allow-Origin" "*",
-  "Content-Length" "44",
-  "X-FB-Debug"
-  "/TnsS2OJtJYHEFzAosELf8xMKiJjZM+vS5Y9qZqFgkAhGfOqxcLibRr8VY9hwtYGsnePij/HdS/13UNp4DN5Dg==",
-  "facebook-api-version" "v2.8",
-  "Connection" "close",
-  "Pragma" "no-cache",
-  "Expires" "Sat, 01 Jan 2000 00:00:00 GMT",
-  "x-fb-rev" "2927011",
-  "ETag" "\"c11e4a9eb900828f15b1ae7f0c9aa66af50b3ff9\"",
-  "x-fb-trace-id" "DXyqTBool3t",
-  "Date" "Fri, 31 Mar 2017 08:11:01 GMT",
-  "Cache-Control" "private, no-cache, no-store, must-revalidate"},
- :orig-content-encoding nil,
- :status 200,
- :length 44,
- :body "{\"177057932317550\":{\"id\":\"177057932317550\"}}",
- :trace-redirects ["https://graph.facebook.com/v2.8/"]}
+(fn [req]{:status 200,
+ :body
+ "{\"id\":\"177057932317550\"}"}
 ){:method :get,
  :address
  "https://graph.facebook.com/v2.8/177057932317550/posts?fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&limit=10&__paging_token=enc_AdBmZCEpy6qDk6tj1rYLio1WD6i6UyX9iSmIVoZBUWSDXzmsZCLVcHP30JZCmeEoSeLJoZBcoE4FxPZCt6kL7iZAiKu3unFebHaxYRfH79qZBgkM7GeaPgZDZD&access_token=XXTOKENXX&until=1293605065",
@@ -646,42 +622,17 @@
  :trace-redirects
  ["https://graph.facebook.com/v2.8/177057932317550/posts?limit=10&fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&access_token=XXTOKENXX&until=1429527326&__paging_token=enc_AdCkfZCiZCLvMIdp6vcizPkrZB7RWrfMhxUHjgFYE5Lxgi81F9spZAUKWQiAyu42y88RcGYFrPfKeVqzoCPJ1UfAvkZB120HZAj5xTVBMHMock9O754QZDZD"]}
 ){:method :get,
- :address "https://graph.facebook.com/v2.8/",
+ :address "https://graph.facebook.com/v2.8/177057932317550",
  :as :json,
  :query-params
  {:path "",
   :fields
   "posts.limit(10){id,created_time,message,likes.summary(true).limit(0),reactions.summary(total_count).limit(0)}",
-  :ids "177057932317550",
   :access_token "XXTOKENXX",
   :since "",
   :until ""}}
-(fn [req]{:request-time 1365,
- :repeatable? false,
- :protocol-version {:name "HTTP", :major 1, :minor 1},
- :streaming? true,
- :chunked? false,
- :reason-phrase "OK",
- :headers
- {"Content-Type" "text/javascript; charset=UTF-8",
-  "Access-Control-Allow-Origin" "*",
-  "X-FB-Debug"
-  "xE/4WzuCCo+U9QY3XewaaX6d8PV7wqJ1OCpeuoizeXIETPBPVYngGNCIoSA9HFcbR54pJ5v6oIioqrWdPMzg/Q==",
-  "facebook-api-version" "v2.8",
-  "Connection" "close",
-  "Pragma" "no-cache",
-  "Expires" "Sat, 01 Jan 2000 00:00:00 GMT",
-  "x-fb-rev" "2927011",
-  "ETag" "\"2d88495d381f6290e34fb6337d13484a8ac525dd\"",
-  "x-fb-trace-id" "CBkDkhiNhq6",
-  "Date" "Fri, 31 Mar 2017 08:10:54 GMT",
-  "Vary" "Accept-Encoding",
-  "Cache-Control" "private, no-cache, no-store, must-revalidate"},
- :orig-content-encoding nil,
- :status 200,
- :length -1,
+(fn [req]{:status 200,
  :body
- "{\"177057932317550\":{\"posts\":{\"data\":[{\"id\":\"177057932317550_1126854757337858\",\"created_time\":\"2016-06-22T06:23:24+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_990386480984687\",\"created_time\":\"2015-10-14T05:03:09+0000\",\"message\":\"B1Fkm\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":10}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":10,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_940984532591549\",\"created_time\":\"2015-06-25T02:16:30+0000\",\"message\":\"JTFv8\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_932914176731918\",\"created_time\":\"2015-06-08T11:10:56+0000\",\"message\":\"SVeRg\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":85}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":85,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_921776914512311\",\"created_time\":\"2015-05-16T08:15:15+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_921759597847376\",\"created_time\":\"2015-05-16T06:54:46+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":5}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":5,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_913890861967583\",\"created_time\":\"2015-04-29T05:09:50+0000\",\"message\":\"08viB\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_913371222019547\",\"created_time\":\"2015-04-28T09:40:20+0000\",\"message\":\"TWMm9\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_910073965682606\",\"created_time\":\"2015-04-23T08:10:30+0000\",\"message\":\"n7mgu\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_908277042528965\",\"created_time\":\"2015-04-20T10:55:26+0000\",\"message\":\"0NM7O\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}}],\"paging\":{\"previous\":\"https://graph.facebook.com/v2.8/177057932317550/posts?limit=10&fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&since=1466576604&access_token=XXTOKENXX&__paging_token=enc_AdC0lJfU5VlMRqurJI1z8dI7GZAHRy5ZBelI1hob1L37lLij2V79i1ZAtQMJyh8artu00t6O2A5N1N2V1GrpkqS4g1nnKWMEz47rrubYBNbz2BwZCAZDZD&__previous=1\",\"next\":\"https://graph.facebook.com/v2.8/177057932317550/posts?limit=10&fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&access_token=XXTOKENXX&until=1429527326&__paging_token=enc_AdCkfZCiZCLvMIdp6vcizPkrZB7RWrfMhxUHjgFYE5Lxgi81F9spZAUKWQiAyu42y88RcGYFrPfKeVqzoCPJ1UfAvkZB120HZAj5xTVBMHMock9O754QZDZD\"}},\"id\":\"177057932317550\"}}",
- :trace-redirects ["https://graph.facebook.com/v2.8/"]}
+ "{\"posts\":{\"data\":[{\"id\":\"177057932317550_1126854757337858\",\"created_time\":\"2016-06-22T06:23:24+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_990386480984687\",\"created_time\":\"2015-10-14T05:03:09+0000\",\"message\":\"B1Fkm\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":10}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":10,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_940984532591549\",\"created_time\":\"2015-06-25T02:16:30+0000\",\"message\":\"JTFv8\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_932914176731918\",\"created_time\":\"2015-06-08T11:10:56+0000\",\"message\":\"SVeRg\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":85}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":85,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_921776914512311\",\"created_time\":\"2015-05-16T08:15:15+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":1}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":1,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_921759597847376\",\"created_time\":\"2015-05-16T06:54:46+0000\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":5}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":5,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_913890861967583\",\"created_time\":\"2015-04-29T05:09:50+0000\",\"message\":\"08viB\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_913371222019547\",\"created_time\":\"2015-04-28T09:40:20+0000\",\"message\":\"TWMm9\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_910073965682606\",\"created_time\":\"2015-04-23T08:10:30+0000\",\"message\":\"n7mgu\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}},{\"id\":\"177057932317550_908277042528965\",\"created_time\":\"2015-04-20T10:55:26+0000\",\"message\":\"0NM7O\",\"reactions\":{\"data\":[],\"summary\":{\"total_count\":0}},\"likes\":{\"data\":[],\"summary\":{\"total_count\":0,\"can_like\":true,\"has_liked\":false}}}],\"paging\":{\"previous\":\"https://graph.facebook.com/v2.8/177057932317550/posts?limit=10&fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&since=1466576604&access_token=XXTOKENXX&__paging_token=enc_AdC0lJfU5VlMRqurJI1z8dI7GZAHRy5ZBelI1hob1L37lLij2V79i1ZAtQMJyh8artu00t6O2A5N1N2V1GrpkqS4g1nnKWMEz47rrubYBNbz2BwZCAZDZD&__previous=1\",\"next\":\"https://graph.facebook.com/v2.8/177057932317550/posts?limit=10&fields=id,created_time,message,likes.summary%28true%29.limit%280%29,reactions.summary%28total_count%29.limit%280%29&access_token=XXTOKENXX&until=1429527326&__paging_token=enc_AdCkfZCiZCLvMIdp6vcizPkrZB7RWrfMhxUHjgFYE5Lxgi81F9spZAUKWQiAyu42y88RcGYFrPfKeVqzoCPJ1UfAvkZB120HZAj5xTVBMHMock9O754QZDZD\"}},\"id\":\"177057932317550\"}"}
 )
 })
